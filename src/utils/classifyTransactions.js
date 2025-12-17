@@ -1,12 +1,11 @@
-// CLASSIFY + MERGE DEGIRO-STYLE TRANSACTIONS
 export function classifyAndMerge(raw) {
-  // Stap 1: groepeer regels per orderId (of fallback: per timestamp + product)
   const groups = {};
 
   raw.forEach(r => {
-    const orderId = r["Order Id"] || `${r["Datum"]}_${r["Tijd"]}_${r["Product"]}`;
+    const record = r.__raw || r;
+    const orderId = record["Order Id"] || `${record["Datum"]}_${record["Tijd"]}_${record["Product"]}`;
     if (!groups[orderId]) groups[orderId] = [];
-    groups[orderId].push(r);
+    groups[orderId].push(record);
   });
 
   const result = [];
@@ -23,25 +22,22 @@ export function classifyAndMerge(raw) {
     let quantity = 0;
     let price = 0;
     let fee = 0;
-    let total = 0; // waarde in asset currency
+    let total = 0;
     let currency = null;
-    let cashEUR = 0; // effect op EUR cash
+    let cashEUR = 0;
     let fxRate = null;
 
     group.forEach(r => {
       const desc = (r.Omschrijving || "").toLowerCase();
-      const mut = r.Mutatie;
-      const saldo = r.Saldo;
-      const curr = saldo || r.FX || null;
+      const mutatie = parseCommaNumber(r.Mutatie || "0");
 
-      // ---- AANKOOP / VERKOOP ----
       if (desc.includes("verkoop") || desc.includes("sell")) {
         type = "SELL";
         const matches = desc.match(/verkoop\s+(\d+)/i);
         if (matches) quantity = parseFloat(matches[1]);
         price = extractPrice(desc);
         currency = extractCurrency(desc);
-        total = Math.abs(parseCommaNumber(r["_1"]));
+        total = Math.abs(mutatie);
       }
 
       if (desc.includes("koop") || desc.includes("buy")) {
@@ -50,75 +46,89 @@ export function classifyAndMerge(raw) {
         if (matches) quantity = parseFloat(matches[2]);
         price = extractPrice(desc);
         currency = extractCurrency(desc);
-        total = Math.abs(parseCommaNumber(r["_1"]));
+        total = Math.abs(mutatie);
       }
 
-      // ---- FX DEBIT ----
       if (desc.includes("valuta debitering")) {
-        const value = parseCommaNumber(r["_1"]);
-        // bv -1076,25 USD
-        // asset-waarde
-        total = Math.abs(value);
+        if (currency === "USD" || currency === "GBP") {
+          total = Math.abs(mutatie);
+        }
       }
 
-      // ---- FX CREDIT ----
       if (desc.includes("valuta creditering")) {
-        const value = parseCommaNumber(r["_1"]);
-        cashEUR += value; // opbrengst in EUR na FX
+        cashEUR += mutatie;
       }
 
-      // ---- KOSTEN ----
       if (desc.includes("transactiekost") || desc.includes("kosten")) {
-        const value = parseCommaNumber(r["_1"]);
-        fee += Math.abs(value);
-        cashEUR -= Math.abs(value);
+        fee += Math.abs(mutatie);
+        cashEUR -= Math.abs(mutatie);
       }
 
-      // ---- CASH STORTING / OPNAME ----
-      if (desc.includes("overboeking")) {
+      if (desc.includes("overboeking") || desc.includes("ideal deposit") || desc.includes("storting")) {
         type = "CASH_TRANSFER";
-        cashEUR += parseCommaNumber(r["_1"]);
+        cashEUR += mutatie;
+      }
+
+      if (desc.includes("dividend")) {
+        type = "DIVIDEND";
+        cashEUR += mutatie;
       }
     });
 
-    // fxRate reconstrueren (optioneel)
-    if (total > 0 && cashEUR !== 0 && currency === "USD") {
+    if (total > 0 && Math.abs(cashEUR) > 0 && currency && currency !== "EUR") {
       fxRate = Math.abs(cashEUR / total);
     }
 
-    result.push({
-      date,
-      time,
-      type: type || "UNKNOWN",
-      asset,
-      isin,
-      quantity,
-      price,
-      currency,
-      total,
-      fee,
-      cashEUR,
-      fxRate
-    });
+    if (type === "BUY" || type === "SELL") {
+      result.push({
+        date,
+        time,
+        type,
+        asset,
+        isin,
+        quantity,
+        price,
+        currency: currency || "EUR",
+        total,
+        fee,
+        cashEUR,
+        fxRate
+      });
+    } else if (type === "CASH_TRANSFER" || type === "DIVIDEND") {
+      result.push({
+        date,
+        time,
+        type,
+        asset: "",
+        isin: "",
+        quantity: 0,
+        price: 0,
+        currency: "EUR",
+        total: cashEUR,
+        fee: 0,
+        cashEUR,
+        fxRate: null
+      });
+    }
   });
 
   return result;
 }
 
-// Helpers
 function parseCommaNumber(str) {
   if (!str) return 0;
   return parseFloat(String(str).replace(".", "").replace(",", "."));
 }
 
 function extractPrice(desc) {
-  const match = desc.match(/@ ([0-9]+,[0-9]+)/);
+  const match = desc.match(/@\s*([0-9,.]+)/);
   if (!match) return 0;
   return parseCommaNumber(match[1]);
 }
 
 function extractCurrency(desc) {
   if (desc.includes("usd")) return "USD";
+  if (desc.includes("gbp")) return "GBP";
   if (desc.includes("eur")) return "EUR";
   return null;
 }

@@ -1,31 +1,33 @@
-import { parseTrade } from "./parseTrade";
 import { extractSymbol } from "../utils/symbolExtractor";
 
-export function buildPositionLedger(transactions = []) {
+export function buildPositionLedger(rawTransactions = [], classifiedTransactions = []) {
   const map = {};
 
-  transactions.forEach(tx => {
-    if (!tx.ISIN) return;
+  classifiedTransactions.forEach(ct => {
+    if (!ct.isin || (ct.type !== "BUY" && ct.type !== "SELL")) return;
 
-    const trade = parseTrade(tx.Omschrijving);
-    if (!trade) return;
+    if (!map[ct.isin]) {
+      const productName = ct.asset || "Onbekend";
+      let symbol = extractSymbol(ct.isin, productName);
 
-    if (!map[tx.ISIN]) {
-      const productName = tx.Product || tx.Naam || tx.Instrument || "Onbekend";
-      let symbol = tx.Symbol || tx.Ticker || extractSymbol(tx.ISIN, productName);
-
-      if (!symbol || symbol === tx.ISIN) {
-        console.warn(`[Position] No ticker found for ISIN: ${tx.ISIN}, using ISIN as fallback`);
-        symbol = tx.ISIN;
+      if (!symbol || symbol === ct.isin) {
+        const rawTx = rawTransactions.find(tx => tx.ISIN === ct.isin);
+        if (rawTx) {
+          symbol = rawTx.Symbol || rawTx.Ticker || symbol;
+        }
+        if (!symbol || symbol === ct.isin) {
+          console.warn(`[Position] No ticker found for ISIN: ${ct.isin}, using ISIN as fallback`);
+          symbol = ct.isin;
+        }
       }
 
-      console.log(`[Position] ISIN: ${tx.ISIN}, Product: ${productName}, Symbol: ${symbol}`);
+      console.log(`[Position] ISIN: ${ct.isin}, Product: ${productName}, Symbol: ${symbol}`);
 
-      map[tx.ISIN] = {
-        isin: tx.ISIN,
+      map[ct.isin] = {
+        isin: ct.isin,
         asset: productName,
         symbol: symbol,
-        currency: tx.Valuta || "EUR",
+        currency: ct.currency || "EUR",
 
         buyQty: 0,
         buyValue: 0,
@@ -34,15 +36,14 @@ export function buildPositionLedger(transactions = []) {
       };
     }
 
-    const p = map[tx.ISIN];
+    const p = map[ct.isin];
 
-    if (trade.quantity > 0) {
-      p.buyQty += trade.quantity;
-      p.buyValue += trade.quantity * trade.price;
-    } else {
-      const qty = Math.abs(trade.quantity);
-      p.sellQty += qty;
-      p.sellValue += qty * trade.price;
+    if (ct.type === "BUY") {
+      p.buyQty += ct.quantity;
+      p.buyValue += ct.total + ct.fee;
+    } else if (ct.type === "SELL") {
+      p.sellQty += ct.quantity;
+      p.sellValue += ct.total - ct.fee;
     }
   });
 
