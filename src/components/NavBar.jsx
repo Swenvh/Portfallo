@@ -27,6 +27,10 @@ export default function Navbar() {
             Home
           </NavLink>
 
+          <NavLink to="/demo" className={linkClass}>
+            Demo
+          </NavLink>
+
           <NavLink to="/upload" className={linkClass}>
             Upload
           </NavLink>

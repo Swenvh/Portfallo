@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { TrendingUp, Upload, BarChart3, Shield, Zap, Target } from "lucide-react";
+import { TrendingUp, Upload, BarChart3, Shield, Zap, Target, Eye } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -26,9 +26,9 @@ export default function HomePage() {
               <Upload size={20} />
               Start met uploaden
             </Link>
-            <Link to="/dashboard" className="btn-hero-secondary">
-              <BarChart3 size={20} />
-              Bekijk dashboard
+            <Link to="/demo" className="btn-hero-secondary">
+              <Eye size={20} />
+              Bekijk demo
             </Link>
           </div>
 
@@ -92,21 +92,21 @@ export default function HomePage() {
         </div>
 
         <div className="features-grid">
-          <Link to="/upload" className="feature-card">
+          <Link to="/demo" className="feature-card">
             <div className="feature-icon blue">
+              <Eye size={24} />
+            </div>
+            <h3>Demo Dashboard</h3>
+            <p>Probeer Portfallo uit met voorbeeld data en zie alle features in actie voordat je start.</p>
+            <div className="feature-arrow">→</div>
+          </Link>
+
+          <Link to="/upload" className="feature-card">
+            <div className="feature-icon green">
               <Upload size={24} />
             </div>
             <h3>Upload & Analyse</h3>
             <p>Importeer je transactiedata en krijg direct diepgaand inzicht in je portfolio performance.</p>
-            <div className="feature-arrow">→</div>
-          </Link>
-
-          <Link to="/dashboard" className="feature-card">
-            <div className="feature-icon green">
-              <BarChart3 size={24} />
-            </div>
-            <h3>Real-time Dashboard</h3>
-            <p>Live koersen, performance tracking en volledige portfolio overview in één overzicht.</p>
             <div className="feature-arrow">→</div>
           </Link>
 

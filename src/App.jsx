@@ -7,6 +7,7 @@ import { seedInitialPrices } from "./services/seedPrices";
 import HomePage from "./pages/Homepage";
 import UploadPage from "./pages/UploadPage";
 import DashboardPage from "./pages/DashboardPage";
+import DemoPage from "./pages/DemoPage";
 import AlertsPage from "./pages/AlertsPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import UpgradePage from "./pages/UpgradePage";
@@ -38,6 +39,11 @@ export default function App() {
         <Route path="/" element={
           <main className="max-w-7xl mx-auto px-6 py-8">
             <HomePage />
+          </main>
+        } />
+        <Route path="/demo" element={
+          <main className="max-w-7xl mx-auto px-6 py-8">
+            <DemoPage />
           </main>
         } />
         <Route path="/upload" element={
