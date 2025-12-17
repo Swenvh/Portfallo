@@ -1,53 +1,101 @@
+import { supabase } from "./supabaseClient";
 import { getMockPrice } from "./mockPrices";
 
-async function fetchFromYahoo(tickers) {
-  const symbols = tickers.join(",");
-  const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`;
-
-  console.log(`[PriceService] Trying Yahoo Finance: ${url}`);
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
+async function getPricesFromDatabase(tickers) {
+  if (!supabase) {
+    console.warn('[PriceService] Supabase not configured');
+    return {};
+  }
 
   try {
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0'
-      },
-      signal: controller.signal
-    });
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const priceDate = yesterday.toISOString().split('T')[0];
 
-    clearTimeout(timeoutId);
+    console.log(`[PriceService] Checking database for ${tickers.length} tickers on ${priceDate}`);
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
+    const { data, error } = await supabase
+      .from('stock_prices')
+      .select('symbol, price, currency, change_percent')
+      .in('symbol', tickers)
+      .eq('price_date', priceDate);
 
-    const data = await res.json();
-
-    if (!data.quoteResponse || !data.quoteResponse.result) {
-      throw new Error("Invalid response structure");
+    if (error) {
+      console.error('[PriceService] Database error:', error);
+      return {};
     }
 
     const result = {};
-
-    data.quoteResponse.result.forEach(item => {
-      if (item && item.symbol && typeof item.regularMarketPrice === 'number') {
-        result[item.symbol] = {
-          price: item.regularMarketPrice,
-          currency: item.currency || 'USD',
-          change: item.regularMarketChangePercent || 0
-        };
-      }
+    data.forEach(item => {
+      result[item.symbol] = {
+        price: Number(item.price),
+        currency: item.currency,
+        change: Number(item.change_percent)
+      };
     });
 
-    console.log(`[PriceService] Yahoo returned ${Object.keys(result).length} prices`);
+    console.log(`[PriceService] Found ${Object.keys(result).length} prices in database`);
     return result;
 
   } catch (error) {
-    clearTimeout(timeoutId);
-    console.warn(`[PriceService] Yahoo Finance failed: ${error.message}`);
-    return null;
+    console.error('[PriceService] Database fetch error:', error);
+    return {};
+  }
+}
+
+async function fetchAndStorePrices(tickers) {
+  if (!supabase) {
+    console.warn('[PriceService] Supabase not configured, skipping fetch');
+    return {};
+  }
+
+  try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.warn('[PriceService] Missing Supabase credentials');
+      return {};
+    }
+
+    const apiUrl = `${supabaseUrl}/functions/v1/fetch-stock-prices`;
+
+    console.log(`[PriceService] Fetching ${tickers.length} new prices via Edge Function`);
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ symbols: tickers })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.success || !data.prices) {
+      throw new Error('Invalid response from Edge Function');
+    }
+
+    const result = {};
+    data.prices.forEach(item => {
+      result[item.symbol] = {
+        price: Number(item.price),
+        currency: item.currency,
+        change: Number(item.change_percent)
+      };
+    });
+
+    console.log(`[PriceService] Fetched and stored ${Object.keys(result).length} prices`);
+    return result;
+
+  } catch (error) {
+    console.error('[PriceService] Edge Function error:', error);
+    return {};
   }
 }
 
@@ -59,19 +107,25 @@ export async function fetchPrices(tickers) {
 
   console.log(`[PriceService] Fetching prices for: ${tickers.join(', ')}`);
 
-  let result = await fetchFromYahoo(tickers);
+  let result = await getPricesFromDatabase(tickers);
 
-  if (!result || Object.keys(result).length === 0) {
-    console.log("[PriceService] Yahoo failed, using mock prices");
-    result = {};
+  const missingTickers = tickers.filter(t => !result[t]);
 
-    tickers.forEach(ticker => {
+  if (missingTickers.length > 0) {
+    console.log(`[PriceService] Missing ${missingTickers.length} tickers, fetching from API`);
+    const newPrices = await fetchAndStorePrices(missingTickers);
+    result = { ...result, ...newPrices };
+  }
+
+  const stillMissing = tickers.filter(t => !result[t]);
+
+  if (stillMissing.length > 0) {
+    console.log(`[PriceService] Using mock prices for ${stillMissing.length} tickers`);
+    stillMissing.forEach(ticker => {
       const mockPrice = getMockPrice(ticker);
       if (mockPrice) {
         result[ticker] = mockPrice;
         console.log(`[PriceService] Mock price for ${ticker}: ${mockPrice.price} ${mockPrice.currency}`);
-      } else {
-        console.warn(`[PriceService] No mock price available for ${ticker}`);
       }
     });
   }

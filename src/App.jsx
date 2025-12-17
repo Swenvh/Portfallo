@@ -1,7 +1,8 @@
-// src/App.jsx
+import { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/NavBar";
 import PaywallModal from "./components/PaywallModal";
+import { seedInitialPrices } from "./services/seedPrices";
 
 import HomePage from "./pages/Homepage";
 import UploadPage from "./pages/UploadPage";
@@ -10,6 +11,21 @@ import AlertsPage from "./pages/AlertsPage";
 import TransactionsPage from "./pages/TransactionsPage";
 
 export default function App() {
+  useEffect(() => {
+    const initPrices = async () => {
+      const seeded = localStorage.getItem('prices_seeded');
+      if (!seeded) {
+        console.log('[App] Seeding initial stock prices...');
+        const success = await seedInitialPrices();
+        if (success) {
+          localStorage.setItem('prices_seeded', 'true');
+        }
+      }
+    };
+
+    initPrices();
+  }, []);
+
   return (
     <>
       <Navbar />
