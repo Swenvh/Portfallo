@@ -182,55 +182,45 @@ export default function PortfolioPerformanceChart({
 
   return (
     <div className="performance-chart-wrapper">
-      {/* ===== STATS ROW ===== */}
-      {stats && (
-        <div className="performance-stats">
-          <div className="stat-item">
-            <span className="stat-label">Total Return</span>
-            <span className={`stat-value ${stats.totalReturn >= 0 ? 'positive' : 'negative'}`}>
-              {stats.totalReturn >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-              {stats.totalReturn.toFixed(2)}%
-            </span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">Max Drawdown</span>
-            <span className="stat-value negative">
-              -{stats.maxDrawdown.toFixed(2)}%
-            </span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">Volatiliteit</span>
-            <span className="stat-value neutral">
-              {stats.volatility.toFixed(2)}%
-            </span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">Beste Dag</span>
-            <span className="stat-value positive">
-              +{stats.bestDay.toFixed(2)}%
-            </span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">Slechtste Dag</span>
-            <span className="stat-value negative">
-              {stats.worstDay.toFixed(2)}%
-            </span>
-          </div>
-        </div>
-      )}
-
       {/* ===== CONTROLS ===== */}
       <div className="chart-controls">
-        <div className="controls-row">
-          <div className="control-group">
-            <label className="control-label">Weergave</label>
+        <div className="controls-main">
+          <div className="button-group">
+            {["1W", "1M", "3M", "6M", "YTD", "1Y", "ALL"].map(r => (
+              <button
+                key={r}
+                className={`control-btn ${range === r ? "active" : ""}`}
+                onClick={() => setRange(r)}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+
+          <div className="controls-secondary">
+            <div className="button-group">
+              <button
+                className={`control-btn icon-btn ${chartType === "area" ? "active" : ""}`}
+                onClick={() => setChartType("area")}
+                title="Area chart"
+              >
+                <BarChart3 size={16} />
+              </button>
+              <button
+                className={`control-btn icon-btn ${chartType === "line" ? "active" : ""}`}
+                onClick={() => setChartType("line")}
+                title="Line chart"
+              >
+                <LineChartIcon size={16} />
+              </button>
+            </div>
+
             <div className="button-group">
               <button
                 className={`control-btn ${mode === "value" ? "active" : ""}`}
                 onClick={() => setMode("value")}
                 title="Absolute waarde"
               >
-                <Activity size={14} />
                 Waarde
               </button>
               <button
@@ -238,66 +228,27 @@ export default function PortfolioPerformanceChart({
                 onClick={() => setMode("percent")}
                 title="Percentage return"
               >
-                <TrendingUp size={14} />
                 Return %
               </button>
             </div>
-          </div>
 
-          <div className="control-group">
-            <label className="control-label">Grafiek Type</label>
-            <div className="button-group">
-              <button
-                className={`control-btn ${chartType === "area" ? "active" : ""}`}
-                onClick={() => setChartType("area")}
-                title="Area chart"
-              >
-                <BarChart3 size={14} />
-              </button>
-              <button
-                className={`control-btn ${chartType === "line" ? "active" : ""}`}
-                onClick={() => setChartType("line")}
-                title="Line chart"
-              >
-                <LineChartIcon size={14} />
-              </button>
-            </div>
-          </div>
-
-          <div className="control-group">
-            <label className="control-label">Benchmark</label>
-            <div className="button-group">
-              <button
-                className={`control-btn ${showBenchmark ? "active" : ""}`}
-                onClick={() => setShowBenchmark(!showBenchmark)}
-                title="Vergelijk met S&P 500"
-              >
-                S&P 500
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="controls-row">
-          <div className="control-group">
-            <label className="control-label">Periode</label>
-            <div className="button-group">
-              {["1W", "1M", "3M", "6M", "YTD", "1Y", "ALL"].map(r => (
+            {mode === 'percent' && (
+              <div className="button-group">
                 <button
-                  key={r}
-                  className={`control-btn ${range === r ? "active" : ""}`}
-                  onClick={() => setRange(r)}
+                  className={`control-btn ${showBenchmark ? "active" : ""}`}
+                  onClick={() => setShowBenchmark(!showBenchmark)}
+                  title="Vergelijk met S&P 500"
                 >
-                  {r}
+                  S&P 500
                 </button>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* ===== CHART ===== */}
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="100%" height={380}>
         <Chart data={filteredData}>
           <defs>
             <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
@@ -310,7 +261,7 @@ export default function PortfolioPerformanceChart({
             </linearGradient>
           </defs>
 
-          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.5} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.3} />
 
           <XAxis
             dataKey="label"
@@ -345,7 +296,7 @@ export default function PortfolioPerformanceChart({
             <DataComponent
               type="monotone"
               dataKey="benchmark"
-              stroke="#64748b"
+              stroke="#94a3b8"
               strokeWidth={2}
               fill={chartType === "area" ? "url(#benchmarkGradient)" : "none"}
               dot={false}
@@ -366,6 +317,43 @@ export default function PortfolioPerformanceChart({
           />
         </Chart>
       </ResponsiveContainer>
+
+      {/* ===== STATS ROW ===== */}
+      {stats && (
+        <div className="performance-stats">
+          <div className="stat-item">
+            <span className="stat-label">Total Return</span>
+            <span className={`stat-value ${stats.totalReturn >= 0 ? 'positive' : 'negative'}`}>
+              {stats.totalReturn >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+              {stats.totalReturn.toFixed(2)}%
+            </span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Volatiliteit</span>
+            <span className="stat-value neutral">
+              {stats.volatility.toFixed(2)}%
+            </span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Max Drawdown</span>
+            <span className="stat-value negative">
+              -{stats.maxDrawdown.toFixed(2)}%
+            </span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Beste Dag</span>
+            <span className="stat-value positive">
+              +{stats.bestDay.toFixed(2)}%
+            </span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Slechtste Dag</span>
+            <span className="stat-value negative">
+              {stats.worstDay.toFixed(2)}%
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
