@@ -4,7 +4,7 @@ import { Wallet, TrendingUp, Banknote, PieChart, Eye, ArrowRight, Lock, UserPlus
 import PageContainer from "../components/PageContainer";
 import StockLogo from "../components/StockLogo";
 import { demoPortfolioData } from "../data/demoData";
-import { LineChart as RechartsLineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from "recharts";
+import { LineChart as RechartsLineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, Area, AreaChart, CartesianGrid } from "recharts";
 
 function formatMoney(value, currency = "USD") {
   const symbol = currency === "USD" ? "$" : "€";
@@ -173,36 +173,56 @@ export default function DemoPage() {
           </div>
           <div className="card-body-dash">
             <ResponsiveContainer width="100%" height={300}>
-              <RechartsLineChart data={performanceData}>
+              <AreaChart data={performanceData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="performanceGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="0" stroke="#f1f5f9" vertical={false} />
                 <XAxis
                   dataKey="date"
-                  stroke="#94a3b8"
-                  fontSize={12}
+                  stroke="#cbd5e1"
+                  fontSize={11}
                   tickLine={false}
+                  axisLine={false}
                 />
                 <YAxis
-                  stroke="#94a3b8"
-                  fontSize={12}
+                  stroke="#cbd5e1"
+                  fontSize={11}
                   tickLine={false}
+                  axisLine={false}
                   tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                  width={50}
                 />
                 <Tooltip
                   contentStyle={{
                     background: 'white',
-                    border: '1px solid #e2e8f0',
+                    border: 'none',
                     borderRadius: '12px',
-                    padding: '0.75rem'
+                    padding: '0.875rem 1rem',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04)',
+                    fontSize: '0.875rem'
                   }}
-                  formatter={(value) => [`$${Number(value).toLocaleString('en-US', {minimumFractionDigits: 2})}`, 'Waarde']}
+                  labelStyle={{
+                    color: '#64748b',
+                    fontWeight: 600,
+                    marginBottom: '0.25rem'
+                  }}
+                  formatter={(value) => [`$${Number(value).toLocaleString('en-US', {minimumFractionDigits: 2})}`, 'Portfolio Waarde']}
+                  cursor={{ stroke: '#e2e8f0', strokeWidth: 1 }}
                 />
-                <Line
+                <Area
                   type="monotone"
                   dataKey="value"
                   stroke="#3b82f6"
-                  strokeWidth={3}
+                  strokeWidth={2.5}
+                  fill="url(#performanceGradient)"
                   dot={false}
+                  animationDuration={800}
                 />
-              </RechartsLineChart>
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
@@ -219,11 +239,17 @@ export default function DemoPage() {
                   data={allocationData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={70}
-                  outerRadius={100}
+                  innerRadius={65}
+                  outerRadius={105}
                   dataKey="value"
                   label={({ name, percent }) => `${name} ${percent.toFixed(1)}%`}
-                  labelLine={false}
+                  labelLine={{
+                    stroke: '#cbd5e1',
+                    strokeWidth: 1
+                  }}
+                  paddingAngle={2}
+                  stroke="white"
+                  strokeWidth={2}
                 >
                   {allocationData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -232,11 +258,21 @@ export default function DemoPage() {
                 <Tooltip
                   contentStyle={{
                     background: 'white',
-                    border: '1px solid #e2e8f0',
+                    border: 'none',
                     borderRadius: '12px',
-                    padding: '0.75rem'
+                    padding: '0.875rem 1rem',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04)',
+                    fontSize: '0.875rem'
                   }}
-                  formatter={(value) => [`$${Number(value).toLocaleString('en-US', {minimumFractionDigits: 2})}`, 'Waarde']}
+                  labelStyle={{
+                    color: '#64748b',
+                    fontWeight: 600,
+                    marginBottom: '0.25rem'
+                  }}
+                  formatter={(value, name, props) => [
+                    `$${Number(value).toLocaleString('en-US', {minimumFractionDigits: 2})} (${props.payload.percent.toFixed(1)}%)`,
+                    name
+                  ]}
                 />
               </RechartsPieChart>
             </ResponsiveContainer>
