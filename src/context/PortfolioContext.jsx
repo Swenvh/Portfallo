@@ -70,7 +70,7 @@ export function PortfolioProvider({ children }) {
     } = portfolio;
 
     const totalCash = Object.values(cashByCurrency).reduce(
-      (sum, v) => sum + Number(v || 0),
+      (sum, v) => sum + Number(v?.balance || v || 0),
       0
     );
 

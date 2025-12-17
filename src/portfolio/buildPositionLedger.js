@@ -1,4 +1,3 @@
-// src/portfolio/buildPositionLedger.js
 import { parseTrade } from "./parseTrade";
 import { extractSymbol } from "../utils/symbolExtractor";
 
@@ -13,15 +12,20 @@ export function buildPositionLedger(transactions = []) {
 
     if (!map[tx.ISIN]) {
       const productName = tx.Product || tx.Naam || tx.Instrument || "Onbekend";
-      const symbol = tx.Symbol || tx.Ticker || extractSymbol(tx.ISIN, productName);
+      let symbol = tx.Symbol || tx.Ticker || extractSymbol(tx.ISIN, productName);
 
-      console.log(`[Position] ISIN: ${tx.ISIN}, Product: ${productName}, Extracted Symbol: ${symbol}`);
+      if (!symbol || symbol === tx.ISIN) {
+        console.warn(`[Position] No ticker found for ISIN: ${tx.ISIN}, using ISIN as fallback`);
+        symbol = tx.ISIN;
+      }
+
+      console.log(`[Position] ISIN: ${tx.ISIN}, Product: ${productName}, Symbol: ${symbol}`);
 
       map[tx.ISIN] = {
         isin: tx.ISIN,
         asset: productName,
         symbol: symbol,
-        currency: tx.Valuta,
+        currency: tx.Valuta || "EUR",
 
         buyQty: 0,
         buyValue: 0,

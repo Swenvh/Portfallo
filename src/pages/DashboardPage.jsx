@@ -40,8 +40,13 @@ export default function DashboardPage() {
     totalPL = 0
   } = portfolio || {};
 
-  const eurCash = Number(cashByCurrency?.EUR?.balance || 0);
-  const totalValue = portfolioValue + eurCash;
+  const eurCash = Number(cashByCurrency?.EUR?.balance || cashByCurrency?.EUR || 0);
+  const usdCash = Number(cashByCurrency?.USD?.balance || cashByCurrency?.USD || 0);
+  const totalCash = Object.values(cashByCurrency).reduce(
+    (sum, v) => sum + Number(v?.balance || v || 0),
+    0
+  );
+  const totalValue = portfolioValue + totalCash;
   const plPercentage = portfolioValue > 0 ? (totalPL / portfolioValue) * 100 : 0;
 
   return (
@@ -82,10 +87,11 @@ export default function DashboardPage() {
             <Banknote size={24} />
           </div>
           <div className="card-content">
-            <span className="card-label">Cash (EUR)</span>
-            <strong className="card-value">€ {eurCash.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
+            <span className="card-label">Cash</span>
+            <strong className="card-value">€ {totalCash.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
             <small className="card-meta">
-              {totalValue > 0 ? ((eurCash / totalValue) * 100).toFixed(1) : "0.0"}% allocatie
+              {totalValue > 0 ? ((totalCash / totalValue) * 100).toFixed(1) : "0.0"}% allocatie
+              {Object.keys(cashByCurrency).length > 1 && ` · ${Object.keys(cashByCurrency).length} valuta's`}
             </small>
           </div>
         </div>
@@ -143,7 +149,7 @@ export default function DashboardPage() {
                 <div className="card-body-dash">
                   <PortfolioAllocationChart
                     positions={openPositions}
-                    cash={eurCash}
+                    cash={totalCash}
                   />
                 </div>
               </div>

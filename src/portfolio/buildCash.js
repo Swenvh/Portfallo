@@ -5,9 +5,8 @@ export function buildCash(transactions) {
     const currency =
       tx.SaldoValuta ||
       tx.Valuta ||
-      tx.Currency;
-
-    if (!currency) return;
+      tx.Currency ||
+      "EUR";
 
     const type =
       tx.Type ||
@@ -15,9 +14,8 @@ export function buildCash(transactions) {
       tx.Omschrijving ||
       "";
 
-    // Alleen cash events
     const isCashEvent =
-      /storting|deposit|dividend|rente|interest|withdraw|onttrek|fx|valuta|cash/i.test(
+      /storting|deposit|dividend|rente|interest|withdraw|onttrek|fx|valuta|cash|flatex|geld/i.test(
         String(type).toLowerCase()
       );
 
@@ -26,6 +24,8 @@ export function buildCash(transactions) {
     const rawAmount =
       tx.Bedrag ||
       tx.Amount ||
+      tx.Mutatie ||
+      tx.Saldo ||
       tx._1 ||
       tx._2;
 
@@ -39,8 +39,14 @@ export function buildCash(transactions) {
 
     if (isNaN(amount)) return;
 
-    if (!cash[currency]) cash[currency] = 0;
-    cash[currency] += amount;
+    if (!cash[currency]) {
+      cash[currency] = {
+        balance: 0,
+        currency: currency
+      };
+    }
+
+    cash[currency].balance += amount;
   });
 
   return cash;
