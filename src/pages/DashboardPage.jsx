@@ -180,11 +180,11 @@ export default function DashboardPage() {
                     {openPositions.map((p, i) => {
                       const quantity = Number(p.quantity || 0);
                       const avgBuy = Number(p.avgBuyPrice || 0);
-                      const price = Number(p.price ?? p.marketPrice ?? avgBuy);
+                      const price = Number(p.price || avgBuy);
                       const marketValue = Number(p.marketValue || 0);
                       const costBasis = Number(p.costBasis || 0);
                       const profitLoss = Number(p.profitLoss || 0);
-                      const plPct = costBasis !== 0 ? (profitLoss / costBasis) * 100 : 0;
+                      const plPct = Number(p.profitLossPct || 0);
 
                       const currencySymbol = p.currency === 'USD' ? '$' : '€';
 
