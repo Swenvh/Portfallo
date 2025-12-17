@@ -7,7 +7,7 @@ import {
   useMemo
 } from "react";
 import Papa from "papaparse";
-import { buildPortfolio } from "../portfolio/portfolioEngine";
+import { buildPortfolio } from "../portfolio/PortfolioEngine";
 
 const PortfolioContext = createContext();
 

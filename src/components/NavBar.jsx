@@ -6,19 +6,17 @@ export default function Navbar() {
 
   const linkClass = ({ isActive }) =>
     isActive
-      ? "text-blue-600 font-semibold"
-      : "text-gray-600 hover:text-gray-900";
+      ? "text-primary font-semibold"
+      : "text-text-secondary hover:text-primary";
 
   return (
-    <header className="border-b bg-white">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* LOGO / NAAM */}
-        <div className="font-bold text-lg">
+    <header className="sticky top-0 z-40 border-b bg-white">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+        <div className="font-bold text-xl tracking-tight bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
           Portfallo
         </div>
 
-        {/* NAV */}
-        <nav className="flex gap-6 text-sm items-center">
+        <nav className="hidden md:flex gap-8 text-sm items-center">
           <NavLink to="/" className={linkClass}>
             Home
           </NavLink>
@@ -39,10 +37,18 @@ export default function Navbar() {
             Alerts
           </NavLink>
 
-          {/* CTA */}
           <button
             onClick={() => setShowPaywall(true)}
-            className="ml-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
+            className="nav-upgrade ml-4"
+          >
+            Upgrade
+          </button>
+        </nav>
+
+        <nav className="md:hidden flex items-center gap-2">
+          <button
+            onClick={() => setShowPaywall(true)}
+            className="nav-upgrade"
           >
             Upgrade
           </button>

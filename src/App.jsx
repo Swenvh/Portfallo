@@ -1,9 +1,9 @@
 // src/App.jsx
 import { Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar";
+import Navbar from "./components/NavBar";
 import PaywallModal from "./components/PaywallModal";
 
-import HomePage from "./pages/HomePage";
+import HomePage from "./pages/Homepage";
 import UploadPage from "./pages/UploadPage";
 import DashboardPage from "./pages/DashboardPage";
 import AlertsPage from "./pages/AlertsPage";
