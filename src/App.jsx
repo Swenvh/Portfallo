@@ -34,6 +34,7 @@ export default function App() {
 
       <Routes>
         <Route path="/upgrade" element={<UpgradePage />} />
+        <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/" element={
           <main className="max-w-7xl mx-auto px-6 py-8">
             <HomePage />
@@ -52,11 +53,6 @@ export default function App() {
         <Route path="/alerts" element={
           <main className="max-w-7xl mx-auto px-6 py-8">
             <AlertsPage />
-          </main>
-        } />
-        <Route path="/transactions" element={
-          <main className="max-w-7xl mx-auto px-6 py-8">
-            <TransactionsPage />
           </main>
         } />
       </Routes>
