@@ -1,19 +1,19 @@
 export const MOCK_PRICES = {
-  "PYPL": { price: 68.45, change: 4.35, currency: "EUR" },
-  "MC.PA": { price: 648.20, change: 20.06, currency: "EUR" },
-  "BABA": { price: 92.30, change: 17.09, currency: "EUR" },
-  "ALFEN.AS": { price: 18.65, change: 38.29, currency: "EUR" },
-  "DIS": { price: 110.82, change: 22.90, currency: "EUR" },
-  "NKE": { price: 74.15, change: -15.54, currency: "EUR" },
-  "VOW3.DE": { price: 98.44, change: -8.99, currency: "EUR" },
-  "BAS.DE": { price: 44.23, change: -2.81, currency: "EUR" },
-  "AAPL": { price: 235.50, change: 12.40, currency: "EUR" },
-  "MSFT": { price: 398.20, change: 8.65, currency: "EUR" },
-  "TSLA": { price: 360.80, change: -2.15, currency: "EUR" },
-  "META": { price: 575.40, change: 15.30, currency: "EUR" },
-  "GOOGL": { price: 167.50, change: 6.75, currency: "EUR" },
-  "NVDA": { price: 133.60, change: 25.60, currency: "EUR" },
-  "AMZN": { price: 210.90, change: 10.20, currency: "EUR" }
+  "PYPL": { price: 61.25, change: -13.35, currency: "USD" },
+  "MC.PA": { price: 636.50, change: 1.66, currency: "EUR" },
+  "BABA": { price: 149.29, change: -0.53, currency: "USD" },
+  "ALFEN.AS": { price: 13.42, change: -8.50, currency: "EUR" },
+  "DIS": { price: 93.50, change: 2.10, currency: "USD" },
+  "NKE": { price: 66.96, change: -1.20, currency: "USD" },
+  "VOW3.DE": { price: 86.20, change: -3.40, currency: "EUR" },
+  "BAS.DE": { price: 44.91, change: -4.52, currency: "EUR" },
+  "AAPL": { price: 245.80, change: 5.20, currency: "USD" },
+  "MSFT": { price: 438.50, change: 3.15, currency: "USD" },
+  "TSLA": { price: 425.60, change: 8.90, currency: "USD" },
+  "META": { price: 618.40, change: 4.50, currency: "USD" },
+  "GOOGL": { price: 182.30, change: 2.80, currency: "USD" },
+  "NVDA": { price: 138.50, change: 6.40, currency: "USD" },
+  "AMZN": { price: 228.90, change: 4.20, currency: "USD" }
 };
 
 export function getMockPrice(symbol) {

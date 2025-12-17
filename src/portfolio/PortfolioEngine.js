@@ -21,15 +21,15 @@ export async function buildPortfolio(transactions = []) {
   const openPositions = addPerformance(openPriced);
 
   /* =========================
-     3️⃣ TOTALEN
+     3️⃣ TOTALEN (in EUR)
      ========================= */
   const portfolioValue = openPositions.reduce(
-    (sum, p) => sum + Number(p.marketValue || 0),
+    (sum, p) => sum + Number(p.marketValueEUR || p.marketValue || 0),
     0
   );
 
   const unrealizedPL = openPositions.reduce(
-    (sum, p) => sum + Number(p.profitLoss || 0),
+    (sum, p) => sum + Number(p.profitLossEUR || p.profitLoss || 0),
     0
   );
 

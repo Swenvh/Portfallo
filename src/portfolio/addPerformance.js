@@ -1,7 +1,10 @@
+import { convertToEUR } from "../utils/currencyConverter";
+
 /**
  * Verrijkt OPEN posities met performance
  * - gebruikt marketPrice
  * - fallback: laatste koopprijs
+ * - converteert naar EUR voor totalen
  */
 export function addPerformance(positions = []) {
   return positions.map(p => {
@@ -13,23 +16,31 @@ export function addPerformance(positions = []) {
     const hasValidMarketPrice = marketPrice && marketPrice > 0;
 
     const price = hasValidMarketPrice ? marketPrice : Number(p.avgBuyPrice || 0);
-
-    console.log(`[addPerformance] ${p.symbol}: marketPrice=${p.marketPrice}, hasValid=${hasValidMarketPrice}, using price=${price}`);
-
     const avgBuy = Number(p.avgBuyPrice || 0);
+    const currency = p.currency || 'EUR';
+
+    console.log(`[addPerformance] ${p.symbol}: price=${price} ${currency}, avgBuy=${avgBuy}`);
 
     const marketValue = quantity * price;
     const costBasis = quantity * avgBuy;
     const profitLoss = marketValue - costBasis;
     const profitLossPct = costBasis !== 0 ? (profitLoss / costBasis) * 100 : 0;
 
+    const marketValueEUR = convertToEUR(marketValue, currency);
+    const costBasisEUR = convertToEUR(costBasis, currency);
+    const profitLossEUR = convertToEUR(profitLoss, currency);
+
     return {
       ...p,
       price,
+      currency,
       marketValue,
       costBasis,
       profitLoss,
-      profitLossPct
+      profitLossPct,
+      marketValueEUR,
+      costBasisEUR,
+      profitLossEUR
     };
   });
 }

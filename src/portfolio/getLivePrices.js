@@ -58,12 +58,15 @@ export async function getLivePrices(positions) {
         };
       }
 
-      console.log(`[LivePrices] ${symbol}: Live price ${livePrice} vs Avg ${p.avgBuyPrice}`);
+      const priceCurrency = liveData.currency || p.currency || 'EUR';
+
+      console.log(`[LivePrices] ${symbol}: Live price ${livePrice} ${priceCurrency} (avg: ${p.avgBuyPrice} ${p.currency})`);
 
       return {
         ...p,
         marketPrice: livePrice,
-        priceChange: liveData.change || 0
+        priceChange: liveData.change || 0,
+        currency: priceCurrency
       };
     });
 
