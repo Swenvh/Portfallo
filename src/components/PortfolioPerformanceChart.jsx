@@ -2,16 +2,12 @@ import { useState, useMemo } from "react";
 import {
   ResponsiveContainer,
   AreaChart,
-  LineChart,
   Area,
-  Line,
   XAxis,
   YAxis,
   Tooltip,
-  CartesianGrid,
-  Legend
+  CartesianGrid
 } from "recharts";
-import { TrendingUp, TrendingDown, BarChart3, LineChart as LineChartIcon, Activity } from "lucide-react";
 
 /* ======================
    DATA HELPERS
@@ -101,39 +97,18 @@ function calculateStats(data) {
 /* ======================
    CUSTOM TOOLTIP
 ====================== */
-function CustomTooltip({ active, payload, label, mode, showBenchmark }) {
+function CustomTooltip({ active, payload, label }) {
   if (!active || !payload || !payload.length) return null;
 
   return (
     <div className="chart-tooltip">
       <p className="tooltip-label">{label}</p>
-      {payload.map((entry, index) => {
-        if (entry.dataKey === 'value' && mode === 'value') {
-          return (
-            <p key={index} style={{ color: entry.color }}>
-              <span className="tooltip-name">Waarde:</span>
-              <span className="tooltip-value">€ {Number(entry.value).toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-            </p>
-          );
-        }
-        if (entry.dataKey === 'percent' && mode === 'percent') {
-          return (
-            <p key={index} style={{ color: entry.color }}>
-              <span className="tooltip-name">Return:</span>
-              <span className="tooltip-value">{entry.value.toFixed(2)}%</span>
-            </p>
-          );
-        }
-        if (entry.dataKey === 'benchmark' && showBenchmark && mode === 'percent') {
-          return (
-            <p key={index} style={{ color: entry.color }}>
-              <span className="tooltip-name">S&P 500:</span>
-              <span className="tooltip-value">{entry.value.toFixed(2)}%</span>
-            </p>
-          );
-        }
-        return null;
-      })}
+      {payload.map((entry, index) => (
+        <p key={index} style={{ color: entry.color }}>
+          <span className="tooltip-name">Return:</span>
+          <span className="tooltip-value">{entry.value.toFixed(2)}%</span>
+        </p>
+      ))}
     </div>
   );
 }
@@ -145,10 +120,7 @@ export default function PortfolioPerformanceChart({
   transactions = [],
   portfolioValue = 0
 }) {
-  const [mode, setMode] = useState("percent");
   const [range, setRange] = useState("ALL");
-  const [chartType, setChartType] = useState("area");
-  const [showBenchmark, setShowBenchmark] = useState(true);
 
   const fullData = useMemo(
     () => buildEquitySeries(transactions, portfolioValue),
@@ -161,11 +133,9 @@ export default function PortfolioPerformanceChart({
     const now = new Date();
     const cutoff = new Date(now);
 
-    if (range === "1W") cutoff.setDate(now.getDate() - 7);
     if (range === "1M") cutoff.setMonth(now.getMonth() - 1);
     if (range === "3M") cutoff.setMonth(now.getMonth() - 3);
     if (range === "6M") cutoff.setMonth(now.getMonth() - 6);
-    if (range === "YTD") cutoff.setMonth(0, 1);
     if (range === "1Y") cutoff.setFullYear(now.getFullYear() - 1);
 
     return fullData.filter(d => d.date >= cutoff);
@@ -177,180 +147,86 @@ export default function PortfolioPerformanceChart({
     return <p className="muted">Geen performance data</p>;
   }
 
-  const Chart = chartType === "area" ? AreaChart : LineChart;
-  const DataComponent = chartType === "area" ? Area : Line;
-
   return (
     <div className="performance-chart-wrapper">
       {/* ===== CONTROLS ===== */}
       <div className="chart-controls">
-        <div className="controls-main">
-          <div className="button-group">
-            {["1W", "1M", "3M", "6M", "YTD", "1Y", "ALL"].map(r => (
-              <button
-                key={r}
-                className={`control-btn ${range === r ? "active" : ""}`}
-                onClick={() => setRange(r)}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-
-          <div className="controls-secondary">
-            <div className="button-group">
-              <button
-                className={`control-btn icon-btn ${chartType === "area" ? "active" : ""}`}
-                onClick={() => setChartType("area")}
-                title="Area chart"
-              >
-                <BarChart3 size={16} />
-              </button>
-              <button
-                className={`control-btn icon-btn ${chartType === "line" ? "active" : ""}`}
-                onClick={() => setChartType("line")}
-                title="Line chart"
-              >
-                <LineChartIcon size={16} />
-              </button>
-            </div>
-
-            <div className="button-group">
-              <button
-                className={`control-btn ${mode === "value" ? "active" : ""}`}
-                onClick={() => setMode("value")}
-                title="Absolute waarde"
-              >
-                Waarde
-              </button>
-              <button
-                className={`control-btn ${mode === "percent" ? "active" : ""}`}
-                onClick={() => setMode("percent")}
-                title="Percentage return"
-              >
-                Return %
-              </button>
-            </div>
-
-            {mode === 'percent' && (
-              <div className="button-group">
-                <button
-                  className={`control-btn ${showBenchmark ? "active" : ""}`}
-                  onClick={() => setShowBenchmark(!showBenchmark)}
-                  title="Vergelijk met S&P 500"
-                >
-                  S&P 500
-                </button>
-              </div>
-            )}
-          </div>
+        <div className="button-group-inline">
+          {["1M", "3M", "6M", "1Y", "ALL"].map(r => (
+            <button
+              key={r}
+              className={`control-btn-inline ${range === r ? "active" : ""}`}
+              onClick={() => setRange(r)}
+            >
+              {r}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* ===== CHART ===== */}
-      <ResponsiveContainer width="100%" height={380}>
-        <Chart data={filteredData}>
+      <ResponsiveContainer width="100%" height={320}>
+        <AreaChart data={filteredData}>
           <defs>
             <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.5} />
-              <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.05} />
-            </linearGradient>
-            <linearGradient id="benchmarkGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#64748b" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#64748b" stopOpacity={0.02} />
+              <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
             </linearGradient>
           </defs>
 
-          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.3} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.5} vertical={false} />
 
           <XAxis
             dataKey="label"
-            tick={{ fontSize: 11, fill: '#64748b' }}
-            stroke="#cbd5e1"
+            tick={{ fontSize: 11, fill: '#94a3b8' }}
+            stroke="#e2e8f0"
+            tickLine={false}
           />
 
           <YAxis
-            tickFormatter={(v) =>
-              mode === "value"
-                ? `€${(v / 1000).toFixed(0)}k`
-                : `${v.toFixed(0)}%`
-            }
-            tick={{ fontSize: 11, fill: '#64748b' }}
-            stroke="#cbd5e1"
+            tickFormatter={(v) => `${v.toFixed(0)}%`}
+            tick={{ fontSize: 11, fill: '#94a3b8' }}
+            stroke="#e2e8f0"
+            tickLine={false}
+            width={50}
           />
 
           <Tooltip
-            content={<CustomTooltip mode={mode} showBenchmark={showBenchmark} />}
+            content={<CustomTooltip />}
           />
 
-          {mode === 'percent' && showBenchmark && (
-            <Legend
-              verticalAlign="top"
-              height={36}
-              iconType="line"
-              wrapperStyle={{ paddingBottom: '10px' }}
-            />
-          )}
-
-          {showBenchmark && mode === 'percent' && (
-            <DataComponent
-              type="monotone"
-              dataKey="benchmark"
-              stroke="#94a3b8"
-              strokeWidth={2}
-              fill={chartType === "area" ? "url(#benchmarkGradient)" : "none"}
-              dot={false}
-              name="S&P 500"
-              strokeDasharray="5 5"
-            />
-          )}
-
-          <DataComponent
+          <Area
             type="monotone"
-            dataKey={mode === "value" ? "value" : "percent"}
+            dataKey="percent"
             stroke="#0ea5e9"
-            strokeWidth={3}
-            fill={chartType === "area" ? "url(#portfolioGradient)" : "none"}
+            strokeWidth={2.5}
+            fill="url(#portfolioGradient)"
             dot={false}
-            name="Portfolio"
             animationDuration={800}
           />
-        </Chart>
+        </AreaChart>
       </ResponsiveContainer>
 
-      {/* ===== STATS ROW ===== */}
+      {/* ===== STATS ===== */}
       {stats && (
-        <div className="performance-stats">
-          <div className="stat-item">
-            <span className="stat-label">Total Return</span>
-            <span className={`stat-value ${stats.totalReturn >= 0 ? 'positive' : 'negative'}`}>
-              {stats.totalReturn >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-              {stats.totalReturn.toFixed(2)}%
+        <div className="performance-stats-compact">
+          <div className="stat-compact">
+            <span className="stat-compact-value positive">
+              {stats.totalReturn >= 0 ? '+' : ''}{stats.totalReturn.toFixed(2)}%
             </span>
+            <span className="stat-compact-label">Total Return</span>
           </div>
-          <div className="stat-item">
-            <span className="stat-label">Volatiliteit</span>
-            <span className="stat-value neutral">
+          <div className="stat-compact">
+            <span className="stat-compact-value neutral">
               {stats.volatility.toFixed(2)}%
             </span>
+            <span className="stat-compact-label">Volatility</span>
           </div>
-          <div className="stat-item">
-            <span className="stat-label">Max Drawdown</span>
-            <span className="stat-value negative">
+          <div className="stat-compact">
+            <span className="stat-compact-value negative">
               -{stats.maxDrawdown.toFixed(2)}%
             </span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">Beste Dag</span>
-            <span className="stat-value positive">
-              +{stats.bestDay.toFixed(2)}%
-            </span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">Slechtste Dag</span>
-            <span className="stat-value negative">
-              {stats.worstDay.toFixed(2)}%
-            </span>
+            <span className="stat-compact-label">Max Drawdown</span>
           </div>
         </div>
       )}
