@@ -4,8 +4,8 @@ import PortfolioAllocationChart from "../components/PortfolioAllocationChart";
 import PortfolioPerformanceChart from "../components/PortfolioPerformanceChart";
 import ClosedPositionsTable from "../components/ClosedPositionsTable";
 import { usePortfolio } from "../context/PortfolioContext";
+import { Wallet, TrendingUp, Banknote, PieChart } from "lucide-react";
 
-// ✅ Alleen formatting – GEEN logica
 function formatMoney(value, currency = "EUR") {
   const symbol = currency === "USD" ? "$" : "€";
   return `${symbol} ${Number(value || 0).toFixed(2)}`;
@@ -17,8 +17,13 @@ export default function DashboardPage() {
   if (!portfolio && !loading) {
     return (
       <PageContainer>
-        <h2>Dashboard</h2>
-        <p className="muted">Upload een CSV om te beginnen</p>
+        <div className="empty-dashboard">
+          <div className="empty-icon">
+            <PieChart size={64} />
+          </div>
+          <h2>Je dashboard is leeg</h2>
+          <p className="muted">Upload een CSV bestand om je portfolio te analyseren</p>
+        </div>
       </PageContainer>
     );
   }
@@ -35,45 +40,67 @@ export default function DashboardPage() {
 
   const eurCash = Number(cashByCurrency?.EUR?.balance || 0);
   const totalValue = portfolioValue + eurCash;
+  const plPercentage = portfolioValue > 0 ? (totalPL / portfolioValue) * 100 : 0;
 
   return (
     <PageContainer>
-      <h2>Dashboard</h2>
-      <p className="subtitle">Overzicht van je portefeuille</p>
+      <div className="dashboard-header">
+        <div>
+          <h2>Dashboard</h2>
+          <p className="subtitle">Real-time overzicht van je beleggingen</p>
+        </div>
+      </div>
 
-      {/* ===== KPI ===== */}
-      <div className="dashboard-summary modern-grid">
-        <div className="summary-card primary">
-          <span>Totale waarde</span>
-          <strong>€ {totalValue.toFixed(2)}</strong>
-          <small>Inclusief cash</small>
+      {/* ===== KPI CARDS ===== */}
+      <div className="dashboard-summary">
+        <div className="summary-card-v2 card-primary">
+          <div className="card-icon blue-gradient">
+            <Wallet size={24} />
+          </div>
+          <div className="card-content">
+            <span className="card-label">Totale waarde</span>
+            <strong className="card-value">€ {totalValue.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
+            <small className="card-meta">Inclusief cash</small>
+          </div>
         </div>
 
-        <div className="summary-card">
-          <span>Belegd vermogen</span>
-          <strong>€ {portfolioValue.toFixed(2)}</strong>
-          <small>{openPositions.length} open posities</small>
+        <div className="summary-card-v2">
+          <div className="card-icon green-gradient">
+            <TrendingUp size={24} />
+          </div>
+          <div className="card-content">
+            <span className="card-label">Belegd vermogen</span>
+            <strong className="card-value">€ {portfolioValue.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
+            <small className="card-meta">{openPositions.length} posities</small>
+          </div>
         </div>
 
-        <div className="summary-card">
-          <span>Cash (EUR)</span>
-          <strong>€ {eurCash.toFixed(2)}</strong>
-          <small>
-            {totalValue > 0
-              ? ((eurCash / totalValue) * 100).toFixed(1)
-              : "0.0"}
-            % allocatie
-          </small>
+        <div className="summary-card-v2">
+          <div className="card-icon orange-gradient">
+            <Banknote size={24} />
+          </div>
+          <div className="card-content">
+            <span className="card-label">Cash (EUR)</span>
+            <strong className="card-value">€ {eurCash.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
+            <small className="card-meta">
+              {totalValue > 0 ? ((eurCash / totalValue) * 100).toFixed(1) : "0.0"}% allocatie
+            </small>
+          </div>
         </div>
 
-        <div className="summary-card">
-          <span>Totale P/L</span>
-          <strong className={totalPL >= 0 ? "positive" : "negative"}>
-            € {totalPL.toFixed(2)}
-          </strong>
-          <small>
-            € {unrealizedPL.toFixed(2)} ongerealiseerd · € {realizedPL.toFixed(2)} gerealiseerd
-          </small>
+        <div className={`summary-card-v2 ${totalPL >= 0 ? 'card-positive' : 'card-negative'}`}>
+          <div className={`card-icon ${totalPL >= 0 ? 'success-gradient' : 'danger-gradient'}`}>
+            <TrendingUp size={24} />
+          </div>
+          <div className="card-content">
+            <span className="card-label">Totale P/L</span>
+            <strong className={`card-value ${totalPL >= 0 ? "positive" : "negative"}`}>
+              {totalPL >= 0 ? '+' : ''}€ {totalPL.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+            </strong>
+            <small className="card-meta">
+              {totalPL >= 0 ? '+' : ''}{plPercentage.toFixed(2)}% · €{unrealizedPL.toFixed(0)} ongereal. · €{realizedPL.toFixed(0)} real.
+            </small>
+          </div>
         </div>
       </div>
 
