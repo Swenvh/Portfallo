@@ -1,6 +1,7 @@
 // src/components/AIAdvicePanel.jsx
 import React from "react";
 import { usePremium } from "../context/PremiumContext";
+import { toTradingViewSymbol } from "../utils/tradingViewSymbol";
 
 export default function AIAdvicePanel({ holdings = [] }) {
   const premium = usePremium?.() || {};
@@ -23,9 +24,9 @@ export default function AIAdvicePanel({ holdings = [] }) {
 
   // Basic mock recommendation (top overweight -> sell part)
   const recommendations = (holdings || []).slice(0,3).map(h => ({
-    symbol: h.symbol || h.ticker || h.name,
+    symbol: toTradingViewSymbol(h.symbol || h.ticker || h.name),
     action: "HERWEEK",
-    reason: `Herbalanceer ${h.symbol || h.name}`,
+    reason: `Herbalanceer ${toTradingViewSymbol(h.symbol || h.name)}`,
     amount: (Number(h.value) || 0) * 0.05
   }));
 

@@ -81,74 +81,109 @@
   width: 100%;
 }
 
-.chart-controls {
-  margin-bottom: 1rem;
-}
-
-.button-group-inline {
+.chart-header {
   display: flex;
-  gap: 0.25rem;
-  justify-content: flex-start;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.control-btn-inline {
-  padding: 0.5rem 1rem;
-  border: none;
-  background: transparent;
-  color: #94a3b8;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: color 0.2s ease;
-  border-radius: 6px;
-}
-
-.control-btn-inline:hover {
-  color: #64748b;
-  background: #f8fafc;
-}
-
-.control-btn-inline.active {
-  color: #0ea5e9;
-  font-weight: 600;
-}
-
-.performance-stats-compact {
-  display: flex;
-  gap: 2rem;
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid #f1f5f9;
-}
-
-.stat-compact {
+.chart-main-stat {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.stat-compact-value {
-  font-size: 1.5rem;
+.chart-return {
+  font-size: 2rem;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1;
 }
 
-.stat-compact-value.positive {
+.chart-return.positive {
   color: #10b981;
 }
 
-.stat-compact-value.negative {
+.chart-return.negative {
   color: #ef4444;
 }
 
-.stat-compact-value.neutral {
-  color: #64748b;
-}
-
-.stat-compact-label {
+.chart-subtitle {
   font-size: 0.75rem;
   color: #94a3b8;
   font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.chart-meta-stats {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.meta-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  text-align: right;
+}
+
+.meta-stat-label {
+  font-size: 0.625rem;
+  color: #cbd5e1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.meta-stat-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.meta-stat-value.negative {
+  color: #ef4444;
+}
+
+.chart-footer {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.chart-periods {
+  display: inline-flex;
+  gap: 0.5rem;
+  padding: 0.25rem;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.period-btn {
+  padding: 0.375rem 0.75rem;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 6px;
+}
+
+.period-btn:hover {
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.period-btn.active {
+  color: #10b981;
+  background: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .chart-tooltip {
@@ -182,29 +217,29 @@
 
 .tooltip-value {
   font-weight: 700;
-  color: #1e293b;
+  color: #10b981;
 }
 
 @media (max-width: 768px) {
-  .button-group-inline {
+  .chart-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .chart-meta-stats {
+    gap: 1rem;
+  }
+
+  .chart-return {
+    font-size: 1.75rem;
+  }
+
+  .chart-periods {
+    width: 100%;
     justify-content: space-between;
   }
 
-  .control-btn-inline {
+  .period-btn {
     flex: 1;
-    padding: 0.5rem 0.5rem;
-    font-size: 0.75rem;
-  }
-
-  .performance-stats-compact {
-    gap: 1.5rem;
-  }
-
-  .stat-compact-value {
-    font-size: 1.25rem;
-  }
-
-  .stat-compact-label {
-    font-size: 0.6875rem;
   }
 }

@@ -2,6 +2,7 @@
 import React from "react";
 import { usePortfolio } from "../context/PortfolioContext";
 import { usePremium } from "../context/PremiumContext";
+import { toTradingViewSymbol } from "../utils/tradingViewSymbol";
 
 export default function RebalancePanel() {
   const portfolio = usePortfolio?.() || {};
@@ -17,7 +18,7 @@ export default function RebalancePanel() {
     const pct = (top.value / total) * 100;
     if (pct > 20) {
       suggestions.push({
-        symbol: top.symbol || top.name,
+        symbol: toTradingViewSymbol(top.symbol || top.name),
         action: "Sell",
         reason: `Top positie is ${pct.toFixed(1)}%`
       });

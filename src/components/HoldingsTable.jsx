@@ -1,5 +1,6 @@
 import React from "react";
 import StockLogo from "./StockLogo";
+import { toTradingViewSymbol } from "../utils/tradingViewSymbol";
 
 export default function HoldingsTable({ holdings = [] }) {
   const list = Array.isArray(holdings) ? holdings : [];
@@ -26,7 +27,7 @@ export default function HoldingsTable({ holdings = [] }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <StockLogo symbol={h.symbol} size={28} />
                   <div>
-                    <div className="font-medium">{h.symbol}</div>
+                    <div className="font-medium">{toTradingViewSymbol(h.symbol)}</div>
                     <div className="text-xs text-gray-500">{h.name}</div>
                   </div>
                 </div>

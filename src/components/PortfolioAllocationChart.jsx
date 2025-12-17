@@ -6,6 +6,7 @@ import {
   ResponsiveContainer,
   Legend
 } from "recharts";
+import { toTradingViewSymbol } from "../utils/tradingViewSymbol";
 
 const COLORS = [
   "#0ea5e9",
@@ -37,7 +38,7 @@ export default function PortfolioAllocationChart({
           : 0);
 
       return {
-        name: p.symbol || p.asset || "Onbekend",
+        name: toTradingViewSymbol(p.symbol || p.asset || "Onbekend"),
         value,
         type: "asset"
       };

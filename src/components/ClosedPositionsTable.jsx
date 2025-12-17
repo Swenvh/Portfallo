@@ -1,4 +1,5 @@
 import StockLogo from './StockLogo';
+import { toTradingViewSymbol } from '../utils/tradingViewSymbol';
 
 export default function ClosedPositionsTable({ positions = [] }) {
   const list = Array.isArray(positions) ? positions : [];
@@ -35,7 +36,7 @@ export default function ClosedPositionsTable({ positions = [] }) {
                   <div className="asset-cell">
                     <StockLogo symbol={p.symbol} size={32} />
                     <div className="asset-cell-content">
-                      <strong>{p.symbol || p.asset || "Onbekend"}</strong>
+                      <strong>{toTradingViewSymbol(p.symbol || p.asset || "Onbekend")}</strong>
                       {p.currency === 'USD' && <span className="currency-badge">USD</span>}
                     </div>
                   </div>

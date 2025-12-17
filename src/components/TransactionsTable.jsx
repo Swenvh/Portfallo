@@ -1,4 +1,5 @@
 import React from "react";
+import { toTradingViewSymbol } from "../utils/tradingViewSymbol";
 
 export default function TransactionsTable({ transactions = [] }) {
   const list = Array.isArray(transactions) ? transactions : [];
@@ -13,7 +14,7 @@ export default function TransactionsTable({ transactions = [] }) {
           <tr className="text-left text-gray-600 border-b">
             <th className="py-2">Datum</th>
             <th className="py-2">Omschrijving</th>
-            <th className="py-2">Sym</th>
+            <th className="py-2">Symbol</th>
             <th className="py-2 text-right">Qty</th>
             <th className="py-2 text-right">Prijs</th>
             <th className="py-2 text-right">Bedrag</th>
@@ -25,7 +26,7 @@ export default function TransactionsTable({ transactions = [] }) {
             <tr key={t.id || i} className="border-b hover:bg-gray-50">
               <td className="py-2">{t.date} {t.time}</td>
               <td className="py-2">{t.product || (t.raw && (t.raw.Omschrijving||t.raw.Description)) || "-"}</td>
-              <td className="py-2">{t.symbol}</td>
+              <td className="py-2">{toTradingViewSymbol(t.symbol)}</td>
               <td className="py-2 text-right">{Number(t.qty || 0).toFixed(4)}</td>
               <td className="py-2 text-right">{t.price ? Number(t.price).toFixed(4) : "-"}</td>
               <td className="py-2 text-right">{Number(t.amount || 0).toFixed(2)}</td>

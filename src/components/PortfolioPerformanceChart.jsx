@@ -149,13 +149,79 @@ export default function PortfolioPerformanceChart({
 
   return (
     <div className="performance-chart-wrapper">
+      {/* ===== HEADER WITH STATS ===== */}
+      {stats && (
+        <div className="chart-header">
+          <div className="chart-main-stat">
+            <div className={`chart-return ${stats.totalReturn >= 0 ? 'positive' : 'negative'}`}>
+              {stats.totalReturn >= 0 ? '+' : ''}{stats.totalReturn.toFixed(2)}%
+            </div>
+            <div className="chart-subtitle">Total Return</div>
+          </div>
+          <div className="chart-meta-stats">
+            <div className="meta-stat">
+              <span className="meta-stat-label">Vol</span>
+              <span className="meta-stat-value">{stats.volatility.toFixed(1)}%</span>
+            </div>
+            <div className="meta-stat">
+              <span className="meta-stat-label">Max DD</span>
+              <span className="meta-stat-value negative">-{stats.maxDrawdown.toFixed(1)}%</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== CHART ===== */}
+      <ResponsiveContainer width="100%" height={280}>
+        <AreaChart data={filteredData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+          <defs>
+            <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
+              <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+
+          <CartesianGrid strokeDasharray="0" stroke="#f1f5f9" vertical={false} />
+
+          <XAxis
+            dataKey="label"
+            tick={{ fontSize: 10, fill: '#cbd5e1' }}
+            axisLine={false}
+            tickLine={false}
+          />
+
+          <YAxis
+            tickFormatter={(v) => `${v.toFixed(0)}%`}
+            tick={{ fontSize: 10, fill: '#cbd5e1' }}
+            axisLine={false}
+            tickLine={false}
+            width={40}
+          />
+
+          <Tooltip
+            content={<CustomTooltip />}
+            cursor={{ stroke: '#e2e8f0', strokeWidth: 1 }}
+          />
+
+          <Area
+            type="monotone"
+            dataKey="percent"
+            stroke="#10b981"
+            strokeWidth={2}
+            fill="url(#portfolioGradient)"
+            dot={false}
+            animationDuration={600}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+
       {/* ===== CONTROLS ===== */}
-      <div className="chart-controls">
-        <div className="button-group-inline">
+      <div className="chart-footer">
+        <div className="chart-periods">
           {["1M", "3M", "6M", "1Y", "ALL"].map(r => (
             <button
               key={r}
-              className={`control-btn-inline ${range === r ? "active" : ""}`}
+              className={`period-btn ${range === r ? "active" : ""}`}
               onClick={() => setRange(r)}
             >
               {r}
@@ -163,73 +229,6 @@ export default function PortfolioPerformanceChart({
           ))}
         </div>
       </div>
-
-      {/* ===== CHART ===== */}
-      <ResponsiveContainer width="100%" height={320}>
-        <AreaChart data={filteredData}>
-          <defs>
-            <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.4} />
-              <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-
-          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.5} vertical={false} />
-
-          <XAxis
-            dataKey="label"
-            tick={{ fontSize: 11, fill: '#94a3b8' }}
-            stroke="#e2e8f0"
-            tickLine={false}
-          />
-
-          <YAxis
-            tickFormatter={(v) => `${v.toFixed(0)}%`}
-            tick={{ fontSize: 11, fill: '#94a3b8' }}
-            stroke="#e2e8f0"
-            tickLine={false}
-            width={50}
-          />
-
-          <Tooltip
-            content={<CustomTooltip />}
-          />
-
-          <Area
-            type="monotone"
-            dataKey="percent"
-            stroke="#0ea5e9"
-            strokeWidth={2.5}
-            fill="url(#portfolioGradient)"
-            dot={false}
-            animationDuration={800}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
-
-      {/* ===== STATS ===== */}
-      {stats && (
-        <div className="performance-stats-compact">
-          <div className="stat-compact">
-            <span className="stat-compact-value positive">
-              {stats.totalReturn >= 0 ? '+' : ''}{stats.totalReturn.toFixed(2)}%
-            </span>
-            <span className="stat-compact-label">Total Return</span>
-          </div>
-          <div className="stat-compact">
-            <span className="stat-compact-value neutral">
-              {stats.volatility.toFixed(2)}%
-            </span>
-            <span className="stat-compact-label">Volatility</span>
-          </div>
-          <div className="stat-compact">
-            <span className="stat-compact-value negative">
-              -{stats.maxDrawdown.toFixed(2)}%
-            </span>
-            <span className="stat-compact-label">Max Drawdown</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
