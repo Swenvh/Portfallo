@@ -1,0 +1,47 @@
+export function buildCash(transactions) {
+  const cash = {};
+
+  transactions.forEach(tx => {
+    const currency =
+      tx.SaldoValuta ||
+      tx.Valuta ||
+      tx.Currency;
+
+    if (!currency) return;
+
+    const type =
+      tx.Type ||
+      tx.Transactie ||
+      tx.Omschrijving ||
+      "";
+
+    // Alleen cash events
+    const isCashEvent =
+      /storting|deposit|dividend|rente|interest|withdraw|onttrek|fx|valuta|cash/i.test(
+        String(type).toLowerCase()
+      );
+
+    if (!isCashEvent) return;
+
+    const rawAmount =
+      tx.Bedrag ||
+      tx.Amount ||
+      tx._1 ||
+      tx._2;
+
+    if (rawAmount == null) return;
+
+    const amount = Number(
+      String(rawAmount)
+        .replace(/\./g, "")
+        .replace(",", ".")
+    );
+
+    if (isNaN(amount)) return;
+
+    if (!cash[currency]) cash[currency] = 0;
+    cash[currency] += amount;
+  });
+
+  return cash;
+}

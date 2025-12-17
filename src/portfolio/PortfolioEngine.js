@@ -1,0 +1,56 @@
+// src/portfolio/portfolioEngine.js
+
+import { buildPositionLedger } from "./buildPositionLedger";
+import { getLivePrices } from "./getLivePrices";
+import { addPerformance } from "./addPerformance";
+import { buildCash } from "./buildCash";
+
+export async function buildPortfolio(transactions = []) {
+  /* =========================
+     1️⃣ LEDGER (ENIGE WAARHEID)
+     ========================= */
+  const ledger = buildPositionLedger(transactions);
+
+  const openBase = ledger.filter(p => p.status === "OPEN");
+  const closedPositions = ledger.filter(p => p.status === "CLOSED");
+
+  /* =========================
+     2️⃣ OPEN POSITIES MET PRIJZEN
+     ========================= */
+  const openPriced = await getLivePrices(openBase);
+  const openPositions = addPerformance(openPriced);
+
+  /* =========================
+     3️⃣ TOTALEN
+     ========================= */
+  const portfolioValue = openPositions.reduce(
+    (sum, p) => sum + Number(p.marketValue || 0),
+    0
+  );
+
+  const unrealizedPL = openPositions.reduce(
+    (sum, p) => sum + Number(p.profitLoss || 0),
+    0
+  );
+
+  const realizedPL = closedPositions.reduce(
+    (sum, p) => sum + Number(p.realizedPL || 0),
+    0
+  );
+
+  /* =========================
+     4️⃣ CASH
+     ========================= */
+  const cashByCurrency = buildCash(transactions);
+
+  return {
+    openPositions,
+    closedPositions,
+    cashByCurrency,
+
+    portfolioValue,
+    unrealizedPL,
+    realizedPL,
+    totalPL: unrealizedPL + realizedPL
+  };
+}
