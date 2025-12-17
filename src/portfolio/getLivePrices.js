@@ -1,69 +1,66 @@
-import { ISIN_TO_TICKER } from "./isinToTicker";
+import { fetchPrices } from "../services/priceService";
 
-const FINNHUB_KEY = import.meta.env.VITE_FINNHUB_KEY;
-
-/**
- * Verrijkt posities met:
- * - price (live of fallback)
- * - marketValue
- */
 export async function getLivePrices(positions) {
-  // 🔒 Geen API key → veilige fallback
-  if (!FINNHUB_KEY) {
-    console.warn("⚠️ Geen Finnhub API key gevonden, fallback actief");
+  if (!positions || positions.length === 0) {
+    return [];
+  }
+
+  const symbolMap = new Map();
+  const tickersToFetch = [];
+
+  for (const p of positions) {
+    const symbol = p.symbol?.trim();
+
+    if (symbol) {
+      symbolMap.set(symbol, p);
+      tickersToFetch.push(symbol);
+    }
+  }
+
+  if (tickersToFetch.length === 0) {
+    console.warn("No symbols found, using fallback prices");
     return positions.map(p => ({
       ...p,
-      price: p.avgPrice,
-      marketValue: p.avgPrice * p.quantity
+      marketPrice: p.avgBuyPrice || 0
     }));
   }
 
-  const results = [];
+  try {
+    const priceData = await fetchPrices(tickersToFetch);
 
-  for (const p of positions) {
-    const ticker = ISIN_TO_TICKER[p.isin];
+    return positions.map(p => {
+      const symbol = p.symbol?.trim();
 
-    // ❗ Geen ticker → fallback op avgPrice
-    if (!ticker) {
-      results.push({
+      if (!symbol || !priceData[symbol]) {
+        return {
+          ...p,
+          marketPrice: p.avgBuyPrice || 0
+        };
+      }
+
+      const liveData = priceData[symbol];
+      const livePrice = liveData.price;
+
+      if (typeof livePrice !== 'number' || livePrice <= 0) {
+        return {
+          ...p,
+          marketPrice: p.avgBuyPrice || 0
+        };
+      }
+
+      return {
         ...p,
-        price: p.avgPrice,
-        marketValue: p.avgPrice * p.quantity
-      });
-      continue;
-    }
+        marketPrice: livePrice,
+        priceChange: liveData.change || 0
+      };
+    });
 
-    try {
-      const res = await fetch(
-        `https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${FINNHUB_KEY}`
-      );
+  } catch (error) {
+    console.error("Error fetching live prices:", error);
 
-      const data = await res.json();
-
-      // Finnhub: c = current price
-      const livePrice =
-        typeof data?.c === "number" && data.c > 0
-          ? data.c
-          : p.avgPrice;
-
-      results.push({
-        ...p,
-        price: livePrice,
-        marketValue: livePrice * p.quantity
-      });
-    } catch (err) {
-      console.error(
-        `❌ Price fetch error for ${ticker} (${p.isin})`,
-        err
-      );
-
-      results.push({
-        ...p,
-        price: p.avgPrice,
-        marketValue: p.avgPrice * p.quantity
-      });
-    }
+    return positions.map(p => ({
+      ...p,
+      marketPrice: p.avgBuyPrice || 0
+    }));
   }
-
-  return results;
 }

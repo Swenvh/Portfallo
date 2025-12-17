@@ -1,23 +1,43 @@
-// src/services/priceService.js
-
 export async function fetchPrices(tickers) {
   if (!tickers || tickers.length === 0) return {};
 
-  const symbols = tickers.join(",");
-  const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`;
+  try {
+    const symbols = tickers.join(",");
+    const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`;
 
-  const res = await fetch(url);
-  const data = await res.json();
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0'
+      }
+    });
 
-  const result = {};
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
 
-  data.quoteResponse.result.forEach(item => {
-    result[item.symbol] = {
-      price: item.regularMarketPrice,
-      currency: item.currency,
-      change: item.regularMarketChangePercent
-    };
-  });
+    const data = await res.json();
 
-  return result;
+    if (!data.quoteResponse || !data.quoteResponse.result) {
+      console.error("Invalid response from Yahoo Finance:", data);
+      return {};
+    }
+
+    const result = {};
+
+    data.quoteResponse.result.forEach(item => {
+      if (item && item.symbol && typeof item.regularMarketPrice === 'number') {
+        result[item.symbol] = {
+          price: item.regularMarketPrice,
+          currency: item.currency || 'USD',
+          change: item.regularMarketChangePercent || 0
+        };
+      }
+    });
+
+    return result;
+
+  } catch (error) {
+    console.error("Error in fetchPrices:", error);
+    return {};
+  }
 }
