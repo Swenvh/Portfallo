@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import PageContainer from "../components/PageContainer";
 import PortfolioAllocationChart from "../components/PortfolioAllocationChart";
 import PortfolioPerformanceChart from "../components/PortfolioPerformanceChart";
@@ -6,7 +7,7 @@ import ClosedPositionsTable from "../components/ClosedPositionsTable";
 import StockLogo from "../components/StockLogo";
 import { usePortfolio } from "../context/PortfolioContext";
 import { toTradingViewSymbol } from "../utils/tradingViewSymbol";
-import { Wallet, TrendingUp, Banknote, PieChart, ChevronDown, ChevronUp } from "lucide-react";
+import { Wallet, TrendingUp, Banknote, PieChart, ChevronDown, ChevronUp, List, ArrowRight } from "lucide-react";
 
 function formatMoney(value, currency = "EUR") {
   const symbol = currency === "USD" ? "$" : "€";
@@ -230,6 +231,30 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
+
+          {/* ===== TRANSACTIONS LINK CARD ===== */}
+          <Link to="/transactions" style={{ textDecoration: 'none' }}>
+            <div className="dashboard-card transactions-link-card">
+              <div className="card-body-dash" style={{ padding: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div className="card-icon blue-gradient" style={{ width: '48px', height: '48px', borderRadius: '12px' }}>
+                      <List size={24} />
+                    </div>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: '#1e293b' }}>
+                        Bekijk alle transacties
+                      </h3>
+                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: '#64748b' }}>
+                        {transactions.length} {transactions.length === 1 ? 'transactie' : 'transacties'} in totaal
+                      </p>
+                    </div>
+                  </div>
+                  <ArrowRight size={24} style={{ color: '#3b82f6', flexShrink: 0 }} />
+                </div>
+              </div>
+            </div>
+          </Link>
 
           {/* ===== GESLOTEN POSITIES ===== */}
           {closedPositions.length > 0 && (
