@@ -8,9 +8,8 @@ async function getPricesFromDatabase(tickers) {
   }
 
   try {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const priceDate = yesterday.toISOString().split('T')[0];
+    const today = new Date();
+    const priceDate = today.toISOString().split('T')[0];
 
     console.log(`[PriceService] Checking database for ${tickers.length} tickers on ${priceDate}`);
 
@@ -34,7 +33,7 @@ async function getPricesFromDatabase(tickers) {
       };
     });
 
-    console.log(`[PriceService] Found ${Object.keys(result).length} prices in database`);
+    console.log(`[PriceService] Found ${Object.keys(result).length} prices in database for today`);
     return result;
 
   } catch (error) {

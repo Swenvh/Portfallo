@@ -1,9 +1,9 @@
-// src/pages/DashboardPage.jsx
 import { useState } from "react";
 import PageContainer from "../components/PageContainer";
 import PortfolioAllocationChart from "../components/PortfolioAllocationChart";
 import PortfolioPerformanceChart from "../components/PortfolioPerformanceChart";
 import ClosedPositionsTable from "../components/ClosedPositionsTable";
+import StockLogo from "../components/StockLogo";
 import { usePortfolio } from "../context/PortfolioContext";
 import { Wallet, TrendingUp, Banknote, PieChart, ChevronDown, ChevronUp } from "lucide-react";
 
@@ -198,8 +198,11 @@ export default function DashboardPage() {
                         <tr key={i}>
                           <td>
                             <div className="asset-cell">
-                              <strong>{p.symbol || p.asset || "Onbekend"}</strong>
-                              {p.currency === 'USD' && <span className="currency-badge">USD</span>}
+                              <StockLogo symbol={p.symbol} size={32} />
+                              <div className="asset-cell-content">
+                                <strong>{p.symbol || p.asset || "Onbekend"}</strong>
+                                {p.currency === 'USD' && <span className="currency-badge">USD</span>}
+                              </div>
                             </div>
                           </td>
                           <td className="right mono">{quantity.toLocaleString('nl-NL')}</td>
