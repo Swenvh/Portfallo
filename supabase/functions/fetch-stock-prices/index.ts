@@ -17,64 +17,52 @@ interface StockPrice {
 async function fetchYahooFinance(symbols: string[]): Promise<Map<string, StockPrice>> {
   const symbolsStr = symbols.join(',');
   const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbolsStr}`;
-
-  console.log(`Fetching from Yahoo Finance for ${symbols.length} symbols`);
-
+  
+  console.log(`Fetching from Yahoo: ${url}`);
+  
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
-
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    
     const res = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'application/json',
       },
       signal: controller.signal,
     });
-
+    
     clearTimeout(timeoutId);
-
+    
     if (!res.ok) {
-      console.error(`Yahoo Finance HTTP error: ${res.status}`);
       throw new Error(`HTTP ${res.status}`);
     }
-
+    
     const data = await res.json();
-
+    
     if (!data.quoteResponse || !data.quoteResponse.result) {
-      console.error('Invalid Yahoo Finance response structure');
       throw new Error('Invalid response structure');
     }
-
+    
     const result = new Map<string, StockPrice>();
-    const today = new Date();
-    const priceDate = today.toISOString().split('T')[0];
-
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const priceDate = yesterday.toISOString().split('T')[0];
+    
     data.quoteResponse.result.forEach((item: any) => {
-      if (item && item.symbol) {
-        const price = item.regularMarketPrice || item.preMarketPrice || item.postMarketPrice;
-
-        if (typeof price === 'number' && price > 0) {
-          const currency = item.currency || (item.symbol.includes('.AS') || item.symbol.includes('.PA') || item.symbol.includes('.DE') ? 'EUR' : 'USD');
-
-          result.set(item.symbol, {
-            symbol: item.symbol,
-            price: price,
-            currency: currency,
-            change_percent: item.regularMarketChangePercent || 0,
-            price_date: priceDate,
-          });
-
-          console.log(`✓ ${item.symbol}: ${price} ${currency}`);
-        } else {
-          console.warn(`✗ ${item.symbol}: No valid price found`);
-        }
+      if (item && item.symbol && typeof item.regularMarketPrice === 'number') {
+        result.set(item.symbol, {
+          symbol: item.symbol,
+          price: item.regularMarketPrice,
+          currency: item.currency || 'USD',
+          change_percent: item.regularMarketChangePercent || 0,
+          price_date: priceDate,
+        });
       }
     });
-
-    console.log(`Successfully fetched ${result.size}/${symbols.length} prices`);
+    
+    console.log(`Fetched ${result.size} prices from Yahoo`);
     return result;
-
+    
   } catch (error) {
     console.error('Yahoo Finance error:', error);
     return new Map();

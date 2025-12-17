@@ -4,14 +4,12 @@ import { buildPositionLedger } from "./buildPositionLedger";
 import { getLivePrices } from "./getLivePrices";
 import { addPerformance } from "./addPerformance";
 import { buildCash } from "./buildCash";
-import { classifyAndMerge } from "../utils/classifyTransactions";
 
 export async function buildPortfolio(transactions = []) {
   /* =========================
      1️⃣ LEDGER (ENIGE WAARHEID)
      ========================= */
-  const classifiedTransactions = classifyAndMerge(transactions);
-  const ledger = buildPositionLedger(transactions, classifiedTransactions);
+  const ledger = buildPositionLedger(transactions);
 
   const openBase = ledger.filter(p => p.status === "OPEN");
   const closedPositions = ledger.filter(p => p.status === "CLOSED");
@@ -43,7 +41,7 @@ export async function buildPortfolio(transactions = []) {
   /* =========================
      4️⃣ CASH
      ========================= */
-  const cashByCurrency = buildCash(transactions, classifiedTransactions);
+  const cashByCurrency = buildCash(transactions);
 
   return {
     openPositions,

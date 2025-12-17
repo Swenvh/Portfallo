@@ -1,9 +1,9 @@
+// src/pages/DashboardPage.jsx
 import { useState } from "react";
 import PageContainer from "../components/PageContainer";
 import PortfolioAllocationChart from "../components/PortfolioAllocationChart";
 import PortfolioPerformanceChart from "../components/PortfolioPerformanceChart";
 import ClosedPositionsTable from "../components/ClosedPositionsTable";
-import StockLogo from "../components/StockLogo";
 import { usePortfolio } from "../context/PortfolioContext";
 import { Wallet, TrendingUp, Banknote, PieChart, ChevronDown, ChevronUp } from "lucide-react";
 
@@ -40,25 +40,14 @@ export default function DashboardPage() {
     totalPL = 0
   } = portfolio || {};
 
-  const safeNumber = (val) => {
-    const num = Number(val || 0);
-    return isNaN(num) ? 0 : num;
-  };
-
-  const eurCash = safeNumber(cashByCurrency?.EUR?.balance || cashByCurrency?.EUR);
-  const usdCash = safeNumber(cashByCurrency?.USD?.balance || cashByCurrency?.USD);
+  const eurCash = Number(cashByCurrency?.EUR?.balance || cashByCurrency?.EUR || 0);
+  const usdCash = Number(cashByCurrency?.USD?.balance || cashByCurrency?.USD || 0);
   const totalCash = Object.values(cashByCurrency).reduce(
-    (sum, v) => sum + safeNumber(v?.balance || v),
+    (sum, v) => sum + Number(v?.balance || v || 0),
     0
   );
-
-  const safePortfolioValue = safeNumber(portfolioValue);
-  const safeTotalPL = safeNumber(totalPL);
-  const safeUnrealizedPL = safeNumber(unrealizedPL);
-  const safeRealizedPL = safeNumber(realizedPL);
-
-  const totalValue = safePortfolioValue + totalCash;
-  const plPercentage = safePortfolioValue > 0 ? (safeTotalPL / safePortfolioValue) * 100 : 0;
+  const totalValue = portfolioValue + totalCash;
+  const plPercentage = portfolioValue > 0 ? (totalPL / portfolioValue) * 100 : 0;
 
   return (
     <PageContainer>
@@ -88,7 +77,7 @@ export default function DashboardPage() {
           </div>
           <div className="card-content">
             <span className="card-label">Belegd vermogen</span>
-            <strong className="card-value">€ {safePortfolioValue.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
+            <strong className="card-value">€ {portfolioValue.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
             <small className="card-meta">{openPositions.length} posities</small>
           </div>
         </div>
@@ -107,17 +96,17 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className={`summary-card-v2 ${safeTotalPL >= 0 ? 'card-positive' : 'card-negative'}`}>
-          <div className={`card-icon ${safeTotalPL >= 0 ? 'success-gradient' : 'danger-gradient'}`}>
+        <div className={`summary-card-v2 ${totalPL >= 0 ? 'card-positive' : 'card-negative'}`}>
+          <div className={`card-icon ${totalPL >= 0 ? 'success-gradient' : 'danger-gradient'}`}>
             <TrendingUp size={24} />
           </div>
           <div className="card-content">
             <span className="card-label">Totale P/L</span>
-            <strong className={`card-value ${safeTotalPL >= 0 ? "positive" : "negative"}`}>
-              {safeTotalPL >= 0 ? '+' : ''}€ {safeTotalPL.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+            <strong className={`card-value ${totalPL >= 0 ? "positive" : "negative"}`}>
+              {totalPL >= 0 ? '+' : ''}€ {totalPL.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
             </strong>
             <small className="card-meta">
-              {safeTotalPL >= 0 ? '+' : ''}{plPercentage.toFixed(2)}% · €{safeUnrealizedPL.toFixed(0)} ongereal. · €{safeRealizedPL.toFixed(0)} real.
+              {totalPL >= 0 ? '+' : ''}{plPercentage.toFixed(2)}% · €{unrealizedPL.toFixed(0)} ongereal. · €{realizedPL.toFixed(0)} real.
             </small>
           </div>
         </div>
@@ -209,11 +198,8 @@ export default function DashboardPage() {
                         <tr key={i}>
                           <td>
                             <div className="asset-cell">
-                              <StockLogo symbol={p.symbol} size={32} />
-                              <div className="asset-cell-content">
-                                <strong>{p.symbol || p.asset || "Onbekend"}</strong>
-                                {p.currency === 'USD' && <span className="currency-badge">USD</span>}
-                              </div>
+                              <strong>{p.symbol || p.asset || "Onbekend"}</strong>
+                              {p.currency === 'USD' && <span className="currency-badge">USD</span>}
                             </div>
                           </td>
                           <td className="right mono">{quantity.toLocaleString('nl-NL')}</td>

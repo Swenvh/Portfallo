@@ -1,5 +1,3 @@
-import StockLogo from './StockLogo';
-
 export default function ClosedPositionsTable({ positions = [] }) {
   const list = Array.isArray(positions) ? positions : [];
 
@@ -33,11 +31,8 @@ export default function ClosedPositionsTable({ positions = [] }) {
               <tr key={p.isin || i}>
                 <td>
                   <div className="asset-cell">
-                    <StockLogo symbol={p.symbol} size={32} />
-                    <div className="asset-cell-content">
-                      <strong>{p.symbol || p.asset || "Onbekend"}</strong>
-                      {p.currency === 'USD' && <span className="currency-badge">USD</span>}
-                    </div>
+                    <strong>{p.symbol || p.asset || "Onbekend"}</strong>
+                    {p.currency === 'USD' && <span className="currency-badge">USD</span>}
                   </div>
                 </td>
 
