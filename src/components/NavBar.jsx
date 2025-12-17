@@ -1,11 +1,9 @@
 import { NavLink, Link } from "react-router-dom";
 import { usePremium } from "../context/PremiumContext";
-import { useAuth } from "../context/AuthContext";
-import { PieChart, LogOut, User } from "lucide-react";
+import { PieChart } from "lucide-react";
 
 export default function Navbar() {
   const { setShowPaywall } = usePremium();
-  const { user, logout } = useAuth();
 
   const linkClass = ({ isActive }) =>
     isActive
@@ -29,85 +27,37 @@ export default function Navbar() {
             Home
           </NavLink>
 
-          {user && (
-            <>
-              <NavLink to="/upload" className={linkClass}>
-                Upload
-              </NavLink>
+          <NavLink to="/upload" className={linkClass}>
+            Upload
+          </NavLink>
 
-              <NavLink to="/dashboard" className={linkClass}>
-                Dashboard
-              </NavLink>
-
-              <NavLink to="/alerts" className={linkClass}>
-                Alerts
-              </NavLink>
-            </>
-          )}
+          <NavLink to="/dashboard" className={linkClass}>
+            Dashboard
+          </NavLink>
 
           <NavLink to="/transactions" className={linkClass}>
             Pricing
           </NavLink>
 
-          {user ? (
-            <>
-              <button
-                onClick={() => setShowPaywall(true)}
-                className="nav-upgrade ml-4"
-              >
-                Upgrade
-              </button>
+          <NavLink to="/alerts" className={linkClass}>
+            Alerts
+          </NavLink>
 
-              <div className="flex items-center gap-3 ml-2 pl-4 border-l border-slate-200">
-                <div className="flex items-center gap-2 text-sm text-slate-700">
-                  <User size={16} />
-                  <span>{user.name}</span>
-                </div>
-                <button
-                  onClick={logout}
-                  className="text-slate-600 hover:text-slate-900 flex items-center gap-1.5 text-sm"
-                  title="Uitloggen"
-                >
-                  <LogOut size={16} />
-                  <span>Uitloggen</span>
-                </button>
-              </div>
-            </>
-          ) : (
-            <Link
-              to="/login"
-              className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              Inloggen
-            </Link>
-          )}
+          <button
+            onClick={() => setShowPaywall(true)}
+            className="nav-upgrade ml-4"
+          >
+            Upgrade
+          </button>
         </nav>
 
         <nav className="md:hidden flex items-center gap-2">
-          {user ? (
-            <>
-              <button
-                onClick={() => setShowPaywall(true)}
-                className="nav-upgrade"
-              >
-                Upgrade
-              </button>
-              <button
-                onClick={logout}
-                className="text-slate-600 hover:text-slate-900"
-                title="Uitloggen"
-              >
-                <LogOut size={20} />
-              </button>
-            </>
-          ) : (
-            <Link
-              to="/login"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
-            >
-              Inloggen
-            </Link>
-          )}
+          <button
+            onClick={() => setShowPaywall(true)}
+            className="nav-upgrade"
+          >
+            Upgrade
+          </button>
         </nav>
       </div>
     </header>
