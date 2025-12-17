@@ -2,10 +2,9 @@ export function classifyAndMerge(raw) {
   const groups = {};
 
   raw.forEach(r => {
-    const record = r.__raw || r;
-    const orderId = record["Order Id"] || `${record["Datum"]}_${record["Tijd"]}_${record["Product"]}`;
+    const orderId = r["Order Id"] || `${r["Datum"]}_${r["Tijd"]}_${r["Product"]}`;
     if (!groups[orderId]) groups[orderId] = [];
-    groups[orderId].push(record);
+    groups[orderId].push(r);
   });
 
   const result = [];
@@ -30,13 +29,14 @@ export function classifyAndMerge(raw) {
     group.forEach(r => {
       const desc = (r.Omschrijving || "").toLowerCase();
       const mutatie = parseCommaNumber(r.Mutatie || "0");
+      const fx = r.FX || "";
 
       if (desc.includes("verkoop") || desc.includes("sell")) {
         type = "SELL";
         const matches = desc.match(/verkoop\s+(\d+)/i);
         if (matches) quantity = parseFloat(matches[1]);
         price = extractPrice(desc);
-        currency = extractCurrency(desc);
+        currency = extractCurrency(desc, fx);
         total = Math.abs(mutatie);
       }
 
@@ -45,23 +45,27 @@ export function classifyAndMerge(raw) {
         const matches = desc.match(/(koop|buy)\s+(\d+)/i);
         if (matches) quantity = parseFloat(matches[2]);
         price = extractPrice(desc);
-        currency = extractCurrency(desc);
+        currency = extractCurrency(desc, fx);
         total = Math.abs(mutatie);
       }
 
-      if (desc.includes("valuta debitering")) {
-        if (currency === "USD" || currency === "GBP") {
+      if (desc.includes("valuta debitering") || desc.includes("debitering")) {
+        const fxCurr = extractCurrency(desc, fx);
+        if (fxCurr && fxCurr !== "EUR") {
           total = Math.abs(mutatie);
+          if (!currency) currency = fxCurr;
+        } else if (type === "BUY") {
+          cashEUR += mutatie;
         }
       }
 
-      if (desc.includes("valuta creditering")) {
+      if (desc.includes("valuta creditering") || desc.includes("creditering")) {
         cashEUR += mutatie;
       }
 
       if (desc.includes("transactiekost") || desc.includes("kosten")) {
         fee += Math.abs(mutatie);
-        cashEUR -= Math.abs(mutatie);
+        cashEUR += mutatie;
       }
 
       if (desc.includes("overboeking") || desc.includes("ideal deposit") || desc.includes("storting")) {
@@ -71,6 +75,10 @@ export function classifyAndMerge(raw) {
 
       if (desc.includes("dividend")) {
         type = "DIVIDEND";
+        cashEUR += mutatie;
+      }
+
+      if (desc.includes("belasting") || desc.includes("tax")) {
         cashEUR += mutatie;
       }
     });
@@ -94,7 +102,9 @@ export function classifyAndMerge(raw) {
         cashEUR,
         fxRate
       });
-    } else if (type === "CASH_TRANSFER" || type === "DIVIDEND") {
+    }
+
+    if (type === "CASH_TRANSFER" || type === "DIVIDEND") {
       result.push({
         date,
         time,
@@ -126,9 +136,14 @@ function extractPrice(desc) {
   return parseCommaNumber(match[1]);
 }
 
-function extractCurrency(desc) {
-  if (desc.includes("usd")) return "USD";
-  if (desc.includes("gbp")) return "GBP";
-  if (desc.includes("eur")) return "EUR";
-  return null;
+function extractCurrency(desc, fx = "") {
+  if (desc.includes("usd") || fx.includes("USD")) return "USD";
+  if (desc.includes("gbp") || fx.includes("GBP")) return "GBP";
+  if (desc.includes("eur") || fx.includes("EUR")) return "EUR";
+
+  if (fx && fx.length === 3) {
+    return fx.toUpperCase();
+  }
+
+  return "EUR";
 }

@@ -43,7 +43,7 @@ export async function buildPortfolio(transactions = []) {
   /* =========================
      4️⃣ CASH
      ========================= */
-  const cashByCurrency = buildCash(transactions);
+  const cashByCurrency = buildCash(transactions, classifiedTransactions);
 
   return {
     openPositions,

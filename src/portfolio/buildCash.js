@@ -1,52 +1,12 @@
-export function buildCash(transactions) {
-  const cash = {};
+export function buildCash(transactions, classifiedTransactions = []) {
+  const cash = { EUR: { balance: 0, currency: "EUR" } };
 
-  transactions.forEach(tx => {
-    const currency =
-      tx.SaldoValuta ||
-      tx.Valuta ||
-      tx.Currency ||
-      "EUR";
-
-    const type =
-      tx.Type ||
-      tx.Transactie ||
-      tx.Omschrijving ||
-      "";
-
-    const isCashEvent =
-      /storting|deposit|dividend|rente|interest|withdraw|onttrek|fx|valuta|cash|flatex|geld/i.test(
-        String(type).toLowerCase()
-      );
-
-    if (!isCashEvent) return;
-
-    const rawAmount =
-      tx.Bedrag ||
-      tx.Amount ||
-      tx.Mutatie ||
-      tx.Saldo ||
-      tx._1 ||
-      tx._2;
-
-    if (rawAmount == null) return;
-
-    const amount = Number(
-      String(rawAmount)
-        .replace(/\./g, "")
-        .replace(",", ".")
-    );
-
-    if (isNaN(amount)) return;
-
-    if (!cash[currency]) {
-      cash[currency] = {
-        balance: 0,
-        currency: currency
-      };
+  classifiedTransactions.forEach(ct => {
+    if (ct.type === "CASH_TRANSFER" || ct.type === "DIVIDEND") {
+      cash.EUR.balance += ct.cashEUR;
+    } else if (ct.type === "BUY" || ct.type === "SELL") {
+      cash.EUR.balance += ct.cashEUR;
     }
-
-    cash[currency].balance += amount;
   });
 
   return cash;
