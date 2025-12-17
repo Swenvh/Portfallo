@@ -104,65 +104,64 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {loading && <p className="muted">⏳ Portfolio wordt geladen…</p>}
+      {loading && (
+        <div className="loading-state">
+          <div className="spinner" />
+          <p>Portfolio wordt geladen...</p>
+        </div>
+      )}
 
       {!loading && (
         <>
-          {/* ===== PERFORMANCE ===== */}
-          {transactions.length > 0 && (
-            <div className="chart-section">
-              <h3>Performance</h3>
-              <PortfolioPerformanceChart
-                transactions={transactions}
-                portfolioValue={portfolioValue}
-              />
-            </div>
-          )}
+          {/* ===== CHARTS ROW ===== */}
+          <div className="dashboard-grid-2col">
+            {/* PERFORMANCE CHART */}
+            {transactions.length > 0 && (
+              <div className="dashboard-card">
+                <div className="card-header-dash">
+                  <h3>Performance</h3>
+                  <span className="badge-info">Historisch</span>
+                </div>
+                <div className="card-body-dash">
+                  <PortfolioPerformanceChart
+                    transactions={transactions}
+                    portfolioValue={portfolioValue}
+                  />
+                </div>
+              </div>
+            )}
 
-          {/* ===== ALLOCATIE ===== */}
-          {openPositions.length > 0 && (
-            <div className="chart-section">
-              <h3>Portefeuille verdeling</h3>
-              <PortfolioAllocationChart
-                positions={openPositions}
-                cash={eurCash}
-              />
-            </div>
-          )}
-
-          {/* ===== CASH ===== */}
-          <div className="cash-section">
-            <h3>Cash</h3>
-
-            {Object.keys(cashByCurrency).length === 0 ? (
-              <p className="muted">Geen cash transacties gevonden</p>
-            ) : (
-              <div className="cash-grid modern">
-                {Object.entries(cashByCurrency).map(([currency, data]) => {
-                  const value = Number(data?.balance || 0);
-                  return (
-                    <div
-                      key={currency}
-                      className={`cash-card modern ${value >= 0 ? "positive" : "negative"}`}
-                    >
-                      <span>{currency}</span>
-                      <strong>{formatMoney(Math.abs(value), currency)}</strong>
-                    </div>
-                  );
-                })}
+            {/* ALLOCATION CHART */}
+            {openPositions.length > 0 && (
+              <div className="dashboard-card">
+                <div className="card-header-dash">
+                  <h3>Allocatie</h3>
+                  <span className="badge-info">{openPositions.length} posities</span>
+                </div>
+                <div className="card-body-dash">
+                  <PortfolioAllocationChart
+                    positions={openPositions}
+                    cash={eurCash}
+                  />
+                </div>
               </div>
             )}
           </div>
 
           {/* ===== OPEN POSITIES ===== */}
-          <div className="positions-section">
-            <h3>Open posities</h3>
+          <div className="dashboard-card">
+            <div className="card-header-dash">
+              <h3>Open posities</h3>
+              <span className="badge-primary">{openPositions.length}</span>
+            </div>
 
             {openPositions.length === 0 ? (
-              <p className="muted">Geen open posities</p>
+              <div className="card-body-dash">
+                <p className="muted">Geen open posities</p>
+              </div>
             ) : (
-              <div className="dashboard-table">
-                <table>
+              <div className="table-container">
+                <table className="modern-table">
                   <thead>
                     <tr>
                       <th>Asset</th>
@@ -189,27 +188,25 @@ export default function DashboardPage() {
                       return (
                         <tr key={i}>
                           <td>
-                            <strong>{p.symbol || p.asset || "Onbekend"}</strong>
+                            <div className="asset-cell">
+                              <strong>{p.symbol || p.asset || "Onbekend"}</strong>
+                            </div>
                           </td>
-                          <td className="right mono">{quantity}</td>
+                          <td className="right mono">{quantity.toLocaleString('nl-NL')}</td>
                           <td className="right mono">
                             {formatMoney(avgBuy, p.currency)}
                           </td>
-                          <td className="right mono muted">
+                          <td className="right mono text-muted">
                             {formatMoney(price, p.currency)}
                           </td>
-                          <td className="right mono">
+                          <td className="right mono font-semibold">
                             {formatMoney(marketValue, p.currency)}
                           </td>
-                          <td
-                            className={`right mono ${pl >= 0 ? "positive" : "negative"}`}
-                          >
-                            {formatMoney(pl, p.currency)}
+                          <td className={`right mono font-semibold ${pl >= 0 ? "text-success" : "text-danger"}`}>
+                            {pl >= 0 ? '+' : ''}{formatMoney(pl, p.currency)}
                           </td>
-                          <td
-                            className={`right mono ${plPct >= 0 ? "positive" : "negative"}`}
-                          >
-                            {plPct.toFixed(2)}%
+                          <td className={`right mono font-semibold ${plPct >= 0 ? "text-success" : "text-danger"}`}>
+                            {plPct >= 0 ? '+' : ''}{plPct.toFixed(2)}%
                           </td>
                         </tr>
                       );
@@ -221,7 +218,15 @@ export default function DashboardPage() {
           </div>
 
           {/* ===== GESLOTEN POSITIES ===== */}
-          <ClosedPositionsTable positions={closedPositions} />
+          {closedPositions.length > 0 && (
+            <div className="dashboard-card">
+              <div className="card-header-dash">
+                <h3>Gesloten posities</h3>
+                <span className="badge-secondary">{closedPositions.length}</span>
+              </div>
+              <ClosedPositionsTable positions={closedPositions} />
+            </div>
+          )}
         </>
       )}
     </PageContainer>
