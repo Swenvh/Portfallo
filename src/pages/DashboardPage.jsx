@@ -1,10 +1,11 @@
 // src/pages/DashboardPage.jsx
+import { useState } from "react";
 import PageContainer from "../components/PageContainer";
 import PortfolioAllocationChart from "../components/PortfolioAllocationChart";
 import PortfolioPerformanceChart from "../components/PortfolioPerformanceChart";
 import ClosedPositionsTable from "../components/ClosedPositionsTable";
 import { usePortfolio } from "../context/PortfolioContext";
-import { Wallet, TrendingUp, Banknote, PieChart } from "lucide-react";
+import { Wallet, TrendingUp, Banknote, PieChart, ChevronDown, ChevronUp } from "lucide-react";
 
 function formatMoney(value, currency = "EUR") {
   const symbol = currency === "USD" ? "$" : "€";
@@ -13,6 +14,7 @@ function formatMoney(value, currency = "EUR") {
 
 export default function DashboardPage() {
   const { portfolio, loading, transactions } = usePortfolio();
+  const [showClosedPositions, setShowClosedPositions] = useState(false);
 
   if (!portfolio && !loading) {
     return (
@@ -178,32 +180,34 @@ export default function DashboardPage() {
                     {openPositions.map((p, i) => {
                       const quantity = Number(p.quantity || 0);
                       const avgBuy = Number(p.avgBuyPrice || 0);
-                      const price = Number(p.price ?? p.marketPrice ?? 0);
+                      const price = Number(p.price ?? p.marketPrice ?? avgBuy);
+                      const marketValue = Number(p.marketValue || 0);
+                      const costBasis = Number(p.costBasis || 0);
+                      const profitLoss = Number(p.profitLoss || 0);
+                      const plPct = costBasis !== 0 ? (profitLoss / costBasis) * 100 : 0;
 
-                      const cost = quantity * avgBuy;
-                      const marketValue = quantity * price;
-                      const pl = marketValue - cost;
-                      const plPct = cost !== 0 ? (pl / cost) * 100 : 0;
+                      const currencySymbol = p.currency === 'USD' ? '$' : '€';
 
                       return (
                         <tr key={i}>
                           <td>
                             <div className="asset-cell">
                               <strong>{p.symbol || p.asset || "Onbekend"}</strong>
+                              {p.currency === 'USD' && <span className="currency-badge">USD</span>}
                             </div>
                           </td>
                           <td className="right mono">{quantity.toLocaleString('nl-NL')}</td>
                           <td className="right mono">
-                            {formatMoney(avgBuy, p.currency)}
+                            {currencySymbol} {avgBuy.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                           </td>
                           <td className="right mono text-muted">
-                            {formatMoney(price, p.currency)}
+                            {currencySymbol} {price.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                           </td>
                           <td className="right mono font-semibold">
-                            {formatMoney(marketValue, p.currency)}
+                            {currencySymbol} {marketValue.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                           </td>
-                          <td className={`right mono font-semibold ${pl >= 0 ? "text-success" : "text-danger"}`}>
-                            {pl >= 0 ? '+' : ''}{formatMoney(pl, p.currency)}
+                          <td className={`right mono font-semibold ${profitLoss >= 0 ? "text-success" : "text-danger"}`}>
+                            {profitLoss >= 0 ? '+' : ''}{currencySymbol} {Math.abs(profitLoss).toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                           </td>
                           <td className={`right mono font-semibold ${plPct >= 0 ? "text-success" : "text-danger"}`}>
                             {plPct >= 0 ? '+' : ''}{plPct.toFixed(2)}%
@@ -220,11 +224,19 @@ export default function DashboardPage() {
           {/* ===== GESLOTEN POSITIES ===== */}
           {closedPositions.length > 0 && (
             <div className="dashboard-card">
-              <div className="card-header-dash">
-                <h3>Gesloten posities</h3>
-                <span className="badge-secondary">{closedPositions.length}</span>
+              <div
+                className="card-header-dash clickable"
+                onClick={() => setShowClosedPositions(!showClosedPositions)}
+              >
+                <div className="header-left">
+                  <h3>Gesloten posities</h3>
+                  <span className="badge-secondary">{closedPositions.length}</span>
+                </div>
+                <button className="collapse-btn">
+                  {showClosedPositions ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                </button>
               </div>
-              <ClosedPositionsTable positions={closedPositions} />
+              {showClosedPositions && <ClosedPositionsTable positions={closedPositions} />}
             </div>
           )}
         </>

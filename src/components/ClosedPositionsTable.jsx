@@ -25,12 +25,14 @@ export default function ClosedPositionsTable({ positions = [] }) {
             const realizedPL = Number(p.realizedPL || 0);
             const realizedPLPct = Number(p.realizedPLPct || 0);
             const positive = realizedPL >= 0;
+            const currencySymbol = p.currency === 'USD' ? '$' : '€';
 
             return (
               <tr key={p.isin || i}>
                 <td>
                   <div className="asset-cell">
                     <strong>{p.symbol || p.asset || "Onbekend"}</strong>
+                    {p.currency === 'USD' && <span className="currency-badge">USD</span>}
                   </div>
                 </td>
 
@@ -43,15 +45,15 @@ export default function ClosedPositionsTable({ positions = [] }) {
                 </td>
 
                 <td className="right mono">
-                  € {Number(p.avgBuyPrice || 0).toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                  {currencySymbol} {Number(p.avgBuyPrice || 0).toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                 </td>
 
                 <td className="right mono">
-                  € {Number(p.avgSellPrice || 0).toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                  {currencySymbol} {Number(p.avgSellPrice || 0).toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                 </td>
 
                 <td className={`right mono font-semibold ${positive ? "text-success" : "text-danger"}`}>
-                  {positive ? '+' : ''}€ {realizedPL.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                  {positive ? '+' : ''}{currencySymbol} {Math.abs(realizedPL).toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                 </td>
 
                 <td className={`right mono font-semibold ${positive ? "text-success" : "text-danger"}`}>

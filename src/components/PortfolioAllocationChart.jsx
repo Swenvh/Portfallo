@@ -3,22 +3,23 @@ import {
   Pie,
   Cell,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
+  Legend
 } from "recharts";
 
-/* 🎨 SaaS-waardige kleuren */
 const COLORS = [
-  "#2563eb",
   "#0ea5e9",
+  "#2563eb",
   "#16a34a",
   "#22c55e",
   "#f59e0b",
-  "#dc2626",
-  "#7c3aed"
+  "#ef4444",
+  "#8b5cf6",
+  "#ec4899"
 ];
 
 const CASH_COLOR = "#64748b";
-const MAX_SLICES = 6; // 👈 top 6 + overig
+const MAX_SLICES = 7;
 
 export default function PortfolioAllocationChart({
   positions = [],
@@ -89,21 +90,35 @@ export default function PortfolioAllocationChart({
     ];
   };
 
-  /* ======================
-     RENDER
-  ====================== */
+  const CustomTooltip = ({ active, payload }) => {
+    if (!active || !payload || !payload.length) return null;
+
+    const data = payload[0];
+    const percent = totalValue > 0 ? (data.value / totalValue) * 100 : 0;
+
+    return (
+      <div className="allocation-tooltip">
+        <div className="tooltip-header">
+          <span className="tooltip-dot" style={{ background: data.payload.fill }} />
+          <span className="tooltip-name">{data.name}</span>
+        </div>
+        <div className="tooltip-value">€ {Number(data.value).toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+        <div className="tooltip-percent">{percent.toFixed(1)}% van portfolio</div>
+      </div>
+    );
+  };
+
   return (
     <div className="allocation-wrapper">
-      {/* ===== DONUT ===== */}
-      <div className="allocation-chart">
-        <ResponsiveContainer width="100%" height={340}>
+      <div className="allocation-chart-container">
+        <ResponsiveContainer width="100%" height={380}>
           <PieChart>
             <Pie
               data={data}
               dataKey="value"
-              innerRadius={95}
-              outerRadius={140}
-              paddingAngle={2}
+              innerRadius="65%"
+              outerRadius="85%"
+              paddingAngle={3}
               stroke="none"
             >
               {data.map((entry, index) => {
@@ -116,21 +131,17 @@ export default function PortfolioAllocationChart({
               })}
             </Pie>
 
-            <Tooltip formatter={tooltipFormatter} />
+            <Tooltip content={<CustomTooltip />} />
           </PieChart>
         </ResponsiveContainer>
 
-        {/* ===== CENTER KPI ===== */}
         <div className="allocation-center">
-          <span className="label">Totale waarde</span>
-          <strong>€ {totalValue.toFixed(2)}</strong>
-          <span className="sub">
-            {positions.length} assets
-          </span>
+          <span className="center-label">Totale waarde</span>
+          <strong className="center-value">€ {totalValue.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
+          <span className="center-sub">{positions.length + (cash > 0 ? 1 : 0)} assets</span>
         </div>
       </div>
 
-      {/* ===== LEGEND ===== */}
       <div className="allocation-legend">
         {data.map((d, i) => {
           const percent =
@@ -143,21 +154,18 @@ export default function PortfolioAllocationChart({
           if (d.type === "other") color = "#94a3b8";
 
           return (
-            <div key={i} className="legend-row">
-              <span
-                className="dot"
-                style={{ background: color }}
-              />
-
-              <span className="name">{d.name}</span>
-
-              <span className="percent">
-                {percent.toFixed(1)}%
-              </span>
-
-              <span className="value">
-                € {d.value.toFixed(2)}
-              </span>
+            <div key={i} className="legend-item">
+              <div className="legend-left">
+                <span
+                  className="legend-dot"
+                  style={{ background: color }}
+                />
+                <span className="legend-name">{d.name}</span>
+              </div>
+              <div className="legend-right">
+                <span className="legend-percent">{percent.toFixed(1)}%</span>
+                <span className="legend-value">€ {d.value.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+              </div>
             </div>
           );
         })}
