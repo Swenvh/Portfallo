@@ -5,6 +5,7 @@ import PortfolioPerformanceChart from "../components/PortfolioPerformanceChart";
 import ClosedPositionsTable from "../components/ClosedPositionsTable";
 import StockLogo from "../components/StockLogo";
 import { usePortfolio } from "../context/PortfolioContext";
+import { toTradingViewSymbol } from "../utils/tradingViewSymbol";
 import { Wallet, TrendingUp, Banknote, PieChart, ChevronDown, ChevronUp } from "lucide-react";
 
 function formatMoney(value, currency = "EUR") {
@@ -200,7 +201,7 @@ export default function DashboardPage() {
                             <div className="asset-cell">
                               <StockLogo symbol={p.symbol} size={32} />
                               <div className="asset-cell-content">
-                                <strong>{p.symbol || p.asset || "Onbekend"}</strong>
+                                <strong>{toTradingViewSymbol(p.symbol || p.asset || "Onbekend")}</strong>
                                 {p.currency === 'USD' && <span className="currency-badge">USD</span>}
                               </div>
                             </div>

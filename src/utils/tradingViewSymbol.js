@@ -1,7 +1,16 @@
 export function toTradingViewSymbol(symbol) {
-  if (!symbol) return '';
+  if (!symbol) return 'N/A';
 
-  const upperSymbol = symbol.toUpperCase();
+  let cleanSymbol = symbol.toUpperCase().trim();
+
+  if (/^[A-Z]{2}\d{10}$/.test(cleanSymbol)) {
+    return cleanSymbol.substring(0, 2) + '...' + cleanSymbol.slice(-4);
+  }
+
+  cleanSymbol = cleanSymbol
+    .replace(/\s+(AS|DE|NA|PA|L|SW|US|MI|MC)$/i, '')
+    .replace(/\.AS$|\.DE$|\.PA$|\.L$|\.SW$|\.US$|\.MI$|\.MC$/i, '')
+    .trim();
 
   const symbolMap = {
     'AAPL': 'NASDAQ:AAPL',
@@ -36,5 +45,5 @@ export function toTradingViewSymbol(symbol) {
     'XAG': 'TVC:SILVER',
   };
 
-  return symbolMap[upperSymbol] || upperSymbol;
+  return symbolMap[cleanSymbol] || cleanSymbol;
 }
