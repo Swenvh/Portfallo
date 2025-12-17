@@ -1,5 +1,6 @@
 // src/portfolio/buildPositionLedger.js
 import { parseTrade } from "./parseTrade";
+import { extractSymbol } from "../utils/symbolExtractor";
 
 export function buildPositionLedger(transactions = []) {
   const map = {};
@@ -11,14 +12,15 @@ export function buildPositionLedger(transactions = []) {
     if (!trade) return;
 
     if (!map[tx.ISIN]) {
+      const productName = tx.Product || tx.Naam || tx.Instrument || "Onbekend";
+      const symbol = tx.Symbol || tx.Ticker || extractSymbol(tx.ISIN, productName);
+
+      console.log(`[Position] ISIN: ${tx.ISIN}, Product: ${productName}, Extracted Symbol: ${symbol}`);
+
       map[tx.ISIN] = {
         isin: tx.ISIN,
-        asset:
-          tx.Product ||
-          tx.Naam ||
-          tx.Instrument ||
-          "Onbekend",
-        symbol: tx.Symbol || tx.Ticker || null,
+        asset: productName,
+        symbol: symbol,
         currency: tx.Valuta,
 
         buyQty: 0,
