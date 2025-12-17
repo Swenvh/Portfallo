@@ -22,7 +22,7 @@ export function classifyAndMerge(raw) {
     let price = 0;
     let fee = 0;
     let total = 0;
-    let currency = null;
+    let currency = "EUR";
     let cashEUR = 0;
     let fxRate = null;
 
@@ -37,7 +37,6 @@ export function classifyAndMerge(raw) {
         if (matches) quantity = parseFloat(matches[1]);
         price = extractPrice(desc);
         currency = extractCurrency(desc, fx);
-        total = Math.abs(mutatie);
       }
 
       if (desc.includes("koop") || desc.includes("buy")) {
@@ -46,48 +45,41 @@ export function classifyAndMerge(raw) {
         if (matches) quantity = parseFloat(matches[2]);
         price = extractPrice(desc);
         currency = extractCurrency(desc, fx);
-        total = Math.abs(mutatie);
-      }
-
-      if (desc.includes("valuta debitering") || desc.includes("debitering")) {
-        const fxCurr = extractCurrency(desc, fx);
-        if (fxCurr && fxCurr !== "EUR") {
-          total = Math.abs(mutatie);
-          if (!currency) currency = fxCurr;
-        } else if (type === "BUY") {
-          cashEUR += mutatie;
-        }
-      }
-
-      if (desc.includes("valuta creditering") || desc.includes("creditering")) {
-        cashEUR += mutatie;
       }
 
       if (desc.includes("transactiekost") || desc.includes("kosten")) {
         fee += Math.abs(mutatie);
-        cashEUR += mutatie;
       }
 
+      cashEUR += mutatie;
+
       if (desc.includes("overboeking") || desc.includes("ideal deposit") || desc.includes("storting")) {
-        type = "CASH_TRANSFER";
-        cashEUR += mutatie;
+        if (!type) type = "CASH_TRANSFER";
       }
 
       if (desc.includes("dividend")) {
-        type = "DIVIDEND";
-        cashEUR += mutatie;
-      }
-
-      if (desc.includes("belasting") || desc.includes("tax")) {
-        cashEUR += mutatie;
+        if (!type) type = "DIVIDEND";
       }
     });
 
-    if (total > 0 && Math.abs(cashEUR) > 0 && currency && currency !== "EUR") {
-      fxRate = Math.abs(cashEUR / total);
-    }
-
     if (type === "BUY" || type === "SELL") {
+      total = quantity * price;
+
+      if (total > 0 && cashEUR !== 0 && currency !== "EUR") {
+        fxRate = Math.abs(cashEUR / total);
+      }
+
+      if (quantity === 0 || price === 0) {
+        console.warn(`[classifyAndMerge] Invalid ${type} transaction:`, {
+          asset,
+          isin,
+          quantity,
+          price,
+          description: base.Omschrijving
+        });
+        return;
+      }
+
       result.push({
         date,
         time,
@@ -96,15 +88,13 @@ export function classifyAndMerge(raw) {
         isin,
         quantity,
         price,
-        currency: currency || "EUR",
+        currency,
         total,
         fee,
         cashEUR,
         fxRate
       });
-    }
-
-    if (type === "CASH_TRANSFER" || type === "DIVIDEND") {
+    } else if (type === "CASH_TRANSFER" || type === "DIVIDEND") {
       result.push({
         date,
         time,
@@ -126,23 +116,38 @@ export function classifyAndMerge(raw) {
 }
 
 function parseCommaNumber(str) {
-  if (!str) return 0;
-  return parseFloat(String(str).replace(".", "").replace(",", "."));
+  if (!str || str === "") return 0;
+
+  const cleaned = String(str)
+    .replace(/\s/g, "")
+    .replace(/\./g, "")
+    .replace(",", ".");
+
+  const result = parseFloat(cleaned);
+  return isNaN(result) ? 0 : result;
 }
 
 function extractPrice(desc) {
   const match = desc.match(/@\s*([0-9,.]+)/);
-  if (!match) return 0;
+  if (!match) {
+    const priceMatch = desc.match(/(\d+[.,]\d+)/);
+    if (priceMatch) return parseCommaNumber(priceMatch[1]);
+    return 0;
+  }
   return parseCommaNumber(match[1]);
 }
 
 function extractCurrency(desc, fx = "") {
-  if (desc.includes("usd") || fx.includes("USD")) return "USD";
-  if (desc.includes("gbp") || fx.includes("GBP")) return "GBP";
-  if (desc.includes("eur") || fx.includes("EUR")) return "EUR";
+  const fxUpper = fx.toUpperCase();
 
-  if (fx && fx.length === 3) {
-    return fx.toUpperCase();
+  if (fxUpper.includes("USD") || desc.includes("usd")) return "USD";
+  if (fxUpper.includes("GBP") || desc.includes("gbp")) return "GBP";
+  if (fxUpper.includes("CHF") || desc.includes("chf")) return "CHF";
+  if (fxUpper.includes("JPY") || desc.includes("jpy")) return "JPY";
+
+  if (fxUpper && fxUpper.length >= 3) {
+    const match = fxUpper.match(/([A-Z]{3})/);
+    if (match) return match[1];
   }
 
   return "EUR";

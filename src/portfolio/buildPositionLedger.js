@@ -40,10 +40,12 @@ export function buildPositionLedger(rawTransactions = [], classifiedTransactions
 
     if (ct.type === "BUY") {
       p.buyQty += ct.quantity;
-      p.buyValue += ct.total + ct.fee;
+      const costBasis = Math.abs(ct.cashEUR);
+      p.buyValue += costBasis;
     } else if (ct.type === "SELL") {
       p.sellQty += ct.quantity;
-      p.sellValue += ct.total - ct.fee;
+      const proceeds = Math.abs(ct.cashEUR);
+      p.sellValue += proceeds;
     }
   });
 
