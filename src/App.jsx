@@ -9,6 +9,7 @@ import UploadPage from "./pages/UploadPage";
 import DashboardPage from "./pages/DashboardPage";
 import AlertsPage from "./pages/AlertsPage";
 import TransactionsPage from "./pages/TransactionsPage";
+import UpgradePage from "./pages/UpgradePage";
 
 export default function App() {
   useEffect(() => {
@@ -31,15 +32,34 @@ export default function App() {
       <Navbar />
       <PaywallModal />
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/upload" element={<UploadPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/alerts" element={<AlertsPage />} />
-          <Route path="/transactions" element={<TransactionsPage />} />
-        </Routes>
-      </main>
+      <Routes>
+        <Route path="/upgrade" element={<UpgradePage />} />
+        <Route path="/" element={
+          <main className="max-w-7xl mx-auto px-6 py-8">
+            <HomePage />
+          </main>
+        } />
+        <Route path="/upload" element={
+          <main className="max-w-7xl mx-auto px-6 py-8">
+            <UploadPage />
+          </main>
+        } />
+        <Route path="/dashboard" element={
+          <main className="max-w-7xl mx-auto px-6 py-8">
+            <DashboardPage />
+          </main>
+        } />
+        <Route path="/alerts" element={
+          <main className="max-w-7xl mx-auto px-6 py-8">
+            <AlertsPage />
+          </main>
+        } />
+        <Route path="/transactions" element={
+          <main className="max-w-7xl mx-auto px-6 py-8">
+            <TransactionsPage />
+          </main>
+        } />
+      </Routes>
     </>
   );
 }
